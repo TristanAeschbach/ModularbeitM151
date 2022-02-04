@@ -100,6 +100,9 @@ if(!isset($_SESSION['page'])){
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
         echo userForm();
     }
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
+        echo editUser($_SESSION['editUser']);
+    }
     ?>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
