@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +47,7 @@ session_start();
                     <button type="submit" class="btn btn-default">Submit</button>
                 </form>
                 <ul class="nav navbar-nav navbar-right">
-                    <li><a href="#"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
+                    <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -57,37 +55,29 @@ session_start();
     <?php
     if(!isset($_SESSION['username'])){
         echo '<div class="container">
-    <div class="row vertical-offset-100">
-    	<div class="col-md-4 col-md-offset-4">
-    		<div class="panel panel-default">
-			  	<div class="panel-heading">
-			    	<h3 class="panel-title">Please sign in</h3>
-			 	</div>
-			  	<div class="panel-body">
-			    	<form accept-charset="UTF-8" role="form" method="post" action="backend.php">
-                    <fieldset>
-			    	  	<div class="form-group">
-			    		    <input class="form-control" placeholder="Username" name="usernameLogin" type="text" required>
-			    		</div>
-			    		<div class="form-group">
-			    			<input class="form-control" placeholder="Password" name="passwordLogin" type="password" value="" required>
-			    		</div>
-			    		<input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
-			    	</fieldset>
-			      	</form>
-			    </div>
-			</div>
-		</div>
-	</div>
-</div>';
-    }
-    function reee(){
-        echo "<meta http-equiv='refresh' content='0;url=index.php'>";
-        echo "reeeeeee";
-    }
-    function raaa(){
-        echo "<meta http-equiv='refresh' content='0;url=index.php'>";
-        echo "raaaaaaa";
+                <div class="row vertical-offset-100">
+                    <div class="col-md-4 col-md-offset-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Please sign in</h3>
+                            </div>
+                            <div class="panel-body">
+                                <form accept-charset="UTF-8" role="form" method="post" action="backend.php">
+                                <fieldset>
+                                    <div class="form-group">
+                                        <input class="form-control" placeholder="Username" name="usernameLogin" type="text" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input class="form-control" placeholder="Password" name="passwordLogin" type="password" value="" required>
+                                    </div>
+                                    <input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
+                                </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>';
     }
     ?>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
