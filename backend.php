@@ -5,7 +5,7 @@ if(!isset($_SESSION)){
 
 function dbconnector($admin){
     $host     = 'localhost';       // host
-    $password = '123456';        // Passwort (brauchen Sie nie dieses Passwort)
+    $password = '123456';        // Passwort
     $database = 'm151';   // database
 
     if($admin == 1){
@@ -23,62 +23,6 @@ function dbconnector($admin){
     return $mysqli;
 }
 
-function userPage(){
-    return "you are user";
-}
-
-function adminPage(){
-    $output = '<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Username</th>
-      <th scope="col">First Name</th>
-      <th scope="col">Last Name</th>
-      <th scope="col">Categories</th>
-      <th scope="col">Admin</th>
-    </tr>
-  </thead>
-  <tbody>';
-    $mysqli = dbconnector(1);
-    $result = $mysqli->query("SELECT * from users;");
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $id = $row['ID'];
-            $username = $row['username'];
-            $firstName = $row['firstName'];
-            $lastName = $row['lastName'];
-            $status = $row['status'];
-            $output .= "<tr>
-                          <th scope='row'>#$id</th>
-                          <td>$username</td>
-                          <td>$firstName</td>
-                          <td>$lastName</td>
-                          <td>";
-            $result2 = $mysqli->query("select c.name from users as u join users_has_kategorie as uk on u.ID = uk.users_ID join category as c on c.tag_ID = uk.kategorie_Tag_ID where u.username = '$username';");
-
-                if ($result2->num_rows> 0) {
-                    while ($row2 = $result2->fetch_assoc()) {
-                        $category = $row2['name'];
-                        $output .= "$category, ";
-                    }
-                    $output = rtrim($output, ", ");
-                }else{
-                    $output .=  "";
-                }
-            $output .= "</td>
-                          <td>$status</td>
-                          <td><a class='btn btn-info' href='backend.php?editUser=$id' role='button'>Edit</a></td>
-                          <td><a class='btn btn-danger' href='backend.php?deleteUser=$id' role='button'>Delete</a></td>
-                        </tr>";
-        }
-    }else{
-        $output .= "no results";
-    }
-    $output .= "</tbody></table>";
-    $mysqli->close();
-    return $output;
-}
 if(isset($_GET['page']) && $_GET['page'] == "default"){
     if(isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
         $_SESSION['page'] = "admin";
@@ -154,6 +98,64 @@ function logout(){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
+function userPage(){
+    return "you are user";
+}
+
+function adminPage(){
+    $output = '<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Username</th>
+      <th scope="col">First Name</th>
+      <th scope="col">Last Name</th>
+      <th scope="col">Categories</th>
+      <th scope="col">Admin</th>
+    </tr>
+  </thead>
+  <tbody>';
+    $mysqli = dbconnector(1);
+    $result = $mysqli->query("SELECT * from users;");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $id = $row['ID'];
+            $username = $row['username'];
+            $firstName = $row['firstName'];
+            $lastName = $row['lastName'];
+            $status = $row['status'];
+            $output .= "<tr>
+                          <th scope='row'>#$id</th>
+                          <td>$username</td>
+                          <td>$firstName</td>
+                          <td>$lastName</td>
+                          <td>";
+            $result2 = $mysqli->query("select c.name from users as u join users_has_category as uk on u.ID = uk.users_ID join category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
+
+                if ($result2->num_rows> 0) {
+                    while ($row2 = $result2->fetch_assoc()) {
+                        $category = $row2['name'];
+                        $output .= "$category, ";
+                    }
+                    $output = rtrim($output, ", ");
+                }else{
+                    $output .=  "";
+                }
+            $output .= "</td>
+                          <td>$status</td>
+                          <td><a class='btn btn-info' href='backend.php?editUser=$id' role='button'>Edit</a></td>
+                          <td><a class='btn btn-danger' href='backend.php?deleteUser=$id' role='button'>Delete</a></td>
+                        </tr>";
+        }
+    }else{
+        $output .= "no results";
+    }
+    $output .= "</tbody></table>";
+    $mysqli->close();
+    return $output;
+}
+
+
 if(isset($_GET['page']) && $_GET['page'] == "newUser"){
     $_SESSION['page'] = "newUser";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
@@ -204,6 +206,7 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
         <div class='form-group form-check'>";
     $mysqli = dbconnector(1);
     $result = $mysqli->query("SELECT * from category;");
+    print_r($result);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $checked = "";
@@ -214,7 +217,7 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
                     $checked = "checked";
                 }
             }
-            $output .= "<input type='checkbox' class='form-check-input' $checked name='check$categoryID' id='check$categoryID'>
+            $output .= "<input type='checkbox' class='form-check-input' $checked name='check$categoryID' id='check$categoryID' value='$categoryID'>
             <label class='ml-1 form-check-label' for='check$categoryID'>$category</label>";
         }
 
@@ -255,11 +258,11 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
     $password = password_hash(htmlspecialchars($password), PASSWORD_DEFAULT);
     if(!empty($_SESSION['editUser'])){
         $userID = $_SESSION['editUser'];
-        $stmt = $mysqli->prepare("UPDATE users SET username = ?, firstName = ?, lastName = ?, hash = ?, Status = ? WHERE ID = '$userID'");
+        $stmt = $mysqli->prepare("UPDATE users SET username = ?, firstName = ?, lastName = ?, hash = ?, status = ? WHERE ID = '$userID'");
         $_SESSION['editUser'] = "";
 
     }else{
-        $stmt = $mysqli->prepare("INSERT INTO users (username, firstName, lastName, hash, Status) values (?,?,?,?,?);");
+        $stmt = $mysqli->prepare("INSERT INTO users (username, firstName, lastName, hash, status) values (?,?,?,?,?);");
     }
     $stmt->bind_param("ssssi", $username, $firstName, $lastName, $password, $status);
     $stmt->execute();
@@ -268,7 +271,7 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
         while ($row = $result->fetch_assoc()) {
             $userID = $row['ID'];
             foreach ($categories as $category){
-                $stmt = $mysqli->prepare("INSERT INTO users_has_kategorie (users_ID, kategorie_Tag_ID) values (?,?);");
+                $stmt = $mysqli->prepare("INSERT INTO users_has_category (users_ID, category_tag_ID) values (?,?);");
                 $stmt->bind_param("ii", $userID, $category);
                 $stmt->execute();
             }
@@ -311,7 +314,7 @@ function editUser($userID)
             } else {
                 $status = "";
             }
-            $result2 = $mysqli->query("select c.tag_ID from users as u join users_has_kategorie as uk on u.ID = uk.users_ID join category as c on c.tag_ID = uk.kategorie_Tag_ID where u.username = '$username';");
+            $result2 = $mysqli->query("select c.tag_ID from users as u join users_has_category as uk on u.ID = uk.users_ID join category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
 
             $categories = [];
 
