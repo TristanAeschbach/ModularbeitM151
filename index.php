@@ -48,7 +48,7 @@ if(!isset($_SESSION['page'])){
                 }
                 if(isset($_SESSION['admin']) && $_SESSION['admin'] == 0){
                     echo '<ul class="nav navbar-nav">
-                    <li><a href="backend.php?page=newUser">New TODO</a></li>
+                    <li><a href="backend.php?page=newTodo">New TODO</a></li>
                 </ul>
                 <form class="navbar-form navbar-left">
                     <div class="form-group">
@@ -61,26 +61,50 @@ if(!isset($_SESSION['page'])){
                 </ul>';
                 }
                 if(isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
-                    echo '<ul class="nav navbar-nav">
-                    <li><a href="backend.php?page=newUser">New User</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Categories <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">New Category</a></li>
-                            <li><a href="#">Edit Category</a></li>
-                            <li><a href="#">Delete Category</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <form class="navbar-form navbar-left">
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Search">
-                    </div>
-                    <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-                </form>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
-                </ul>';
+                    if(isset($_SESSION['page']) && $_SESSION['page'] == "users" || $_SESSION['page'] == "newUser" || $_SESSION['page'] == "editUser"){
+                        echo '<ul class="nav navbar-nav">
+                                <li><a href="backend.php?page=newUser">New User</a></li>
+                                <li><a href="backend.php?page=categories">Categories</a></li>
+                            </ul>
+                            <form class="navbar-form navbar-left">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Search">
+                                </div>
+                                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                            </form>
+                            <ul class="nav navbar-nav navbar-right">
+                                <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
+                            </ul>';
+                    }elseif(isset($_SESSION['page']) && $_SESSION['page'] == "categories" || $_SESSION['page'] == "newCategory" || $_SESSION['page'] == "editCategory"){
+                        echo '<ul class="nav navbar-nav">
+                                <li><a href="backend.php?page=newCategory">New Category</a></li>
+                                <li><a href="backend.php?page=categories">Users</a></li>
+                            </ul>
+                            <form class="navbar-form navbar-left">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Search">
+                                </div>
+                                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                            </form>
+                            <ul class="nav navbar-nav navbar-right">
+                                <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
+                            </ul>';
+                    }else{
+                        echo '<ul class="nav navbar-nav">
+                                <li><a href="backend.php?page=newTodo">New TODO</a></li>
+                                <li><a href="backend.php?page=users">Users</a></li>
+                                <li><a href="backend.php?page=categories">Categories</a></li>
+                            </ul>
+                            <form class="navbar-form navbar-left">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" placeholder="Search">
+                                </div>
+                                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                            </form>
+                            <ul class="nav navbar-nav navbar-right">
+                                <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
+                            </ul>';
+                    }
                 }
                 ?>
 
@@ -91,17 +115,38 @@ if(!isset($_SESSION['page'])){
     if(isset($_SESSION['page']) && $_SESSION['page'] == "login"){
         echo login();
     }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "user"){
-        echo userPage();
+
+    //Todos
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "todos"){
+        echo todoPage();
     }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "admin"){
-        echo adminPage();
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "newTodo"){
+        echo todoForm();
+    }
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "editTodo"){
+        echo editTodo($_SESSION['editTodo']);
+    }
+
+    //Users
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "users"){
+        echo usersPage();
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
         echo userForm();
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
         echo editUser($_SESSION['editUser']);
+    }
+
+    //Categories
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "categories"){
+        echo categoriesPage();
+    }
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "newCategory"){
+        echo categoryForm();
+    }
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "editCategory"){
+        echo editCategory($_SESSION['editCategory']);
     }
     ?>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

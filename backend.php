@@ -3,7 +3,7 @@ if(!isset($_SESSION)){
     session_start();
 }
 
-function dbconnector($admin){
+function dbConnector($admin){
     $host     = 'localhost';       // host
     $password = '123456';        // Passwort
     $database = 'm151';   // database
@@ -24,43 +24,12 @@ function dbconnector($admin){
 }
 
 if(isset($_GET['page']) && $_GET['page'] == "default"){
-    if(isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
-        $_SESSION['page'] = "admin";
-    }elseif (isset($_SESSION['admin']) && $_SESSION['admin'] == 0){
-        $_SESSION['page'] = "user";
+    if (isset($_SESSION['username'])){
+        $_SESSION['page'] = "todos";
     }else{
         $_SESSION['page'] = "login";
     }
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
-}
-
-if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
-    $mysqli = dbconnector(1);
-
-    $username = htmlspecialchars(trim($_POST['usernameLogin']));
-    $password = htmlspecialchars($_POST['passwordLogin']);
-    $result = $mysqli->query("SELECT * from m151.users where username = '$username'");
-    if ($result->num_rows == 1) {
-        while($row = $result->fetch_assoc()) {
-            if(password_verify($password, $row['hash']) && !empty($row['username'])){
-                $_SESSION['ID'] = $row['ID'];
-                $_SESSION['username'] = $row['username'];
-                $_SESSION['firstName'] = $row['firstName'];
-                $_SESSION['lastName'] = $row['lastName'];
-                $_SESSION['admin'] = $row['status'];
-                session_regenerate_id();
-                if($row['status'] == 0){
-                    $_SESSION['page'] = "user";
-                }else{
-                    $_SESSION['page'] = "admin";
-                }
-            }else{
-                echo "Benutzername oder Passwort sind falsch";
-            }
-            $mysqli->close();
-            echo "<meta http-equiv='refresh' content='0;url=index.php'>";
-        }
-    }
 }
 
 function login(){
@@ -89,6 +58,31 @@ function login(){
                 </div>
             </div>';
 }
+if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
+    $mysqli = dbConnector(1);
+
+    $username = htmlspecialchars(trim($_POST['usernameLogin']));
+    $password = htmlspecialchars($_POST['passwordLogin']);
+    $result = $mysqli->query("SELECT * from m151.users where username = '$username'");
+    if ($result->num_rows == 1) {
+        while($row = $result->fetch_assoc()) {
+            if(password_verify($password, $row['hash']) && !empty($row['username'])){
+                $_SESSION['ID'] = $row['ID'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['firstName'] = $row['firstName'];
+                $_SESSION['lastName'] = $row['lastName'];
+                $_SESSION['admin'] = $row['status'];
+                $_SESSION['page'] = "todos";
+                session_regenerate_id();
+            }else{
+                echo "Benutzername oder Passwort sind falsch";
+            }
+            $mysqli->close();
+            echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+        }
+    }
+}
+
 
 if(isset($_GET['logout'])){
     logout();
@@ -98,7 +92,9 @@ function logout(){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-function userPage(){
+
+//TODOS
+function todoPage(){
     $output = '<table class="table">
   <thead>
     <tr>
@@ -106,14 +102,14 @@ function userPage(){
       <th scope="col">Title</th>
       <th scope="col">Priority</th>
       <th scope="col">Created on: </th>
-      <th scope="col">Due in:</th>
+      <th scope="col">Due Date:</th>
       <th scope="col">Progress</th>
       <th scope="col">Created by:</th>
       <th scope="col">Category:</th>
     </tr>
   </thead>
   <tbody>';
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.username, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -140,7 +136,7 @@ function userPage(){
                             </div></td>
                           <td>$creator</td>
                           <td>$category</td>
-                          <td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View</a></td>
+                          <td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content</a></td>
                           <td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
                           <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
                         </tr>";
@@ -152,38 +148,37 @@ function userPage(){
     $mysqli->close();
     return $output;
 }
-
 function calculateTime($date1, $date2){
     $interval = $date1->diff($date2);
     if($date1 > $date2){
         if($interval->y > 0){
-            return "<td class='bg-success'>$interval->y Years, $interval->m Months</td>";
+            return "<td class='bg-success'>Due in: $interval->y Years, $interval->m Months</td>";
         }elseif ($interval->m >0){
-            return "<td class='bg-success'>$interval->m Months, $interval->d Days</td>";
+            return "<td class='bg-success'>Due in: $interval->m Months, $interval->d Days</td>";
         }elseif ($interval->d > 0){
-            return "<td class='bg-success'>$interval->d Days, $interval->h Hours</td>";
+            return "<td class='bg-success'>Due in: $interval->d Days, $interval->h Hours</td>";
         }elseif ($interval->h > 0){
-            return "<td class='bg-success'>$interval->h Hours, $interval->i Minutes</td>";
+            return "<td class='bg-success'>Due in: $interval->h Hours, $interval->i Minutes</td>";
         }elseif ($interval->i > 0){
-            return "<td class='bg-success'>$interval->i Minutes, $interval->s Seconds</td>";
+            return "<td class='bg-success'>Due in: $interval->i Minutes, $interval->s Seconds</td>";
         }elseif ($interval->s > 0){
-            return "<td class='bg-success'>$interval->s Seconds!</td>";
+            return "<td class='bg-success'>Due in: $interval->s Seconds!</td>";
         }else{
             return "<td class='bg-danger'>Due now!</td>";
         }
     } else{
         if($interval->y > 0){
-            return "<td class='bg-danger'>$interval->y Years, $interval->m Months</td>";
+            return "<td class='bg-danger'>Past Due: $interval->y Years, $interval->m Months</td>";
         }elseif ($interval->m >0){
-            return "<td class='bg-danger'>$interval->m Months, $interval->d Days</td>";
+            return "<td class='bg-danger'>Past Due: $interval->m Months, $interval->d Days</td>";
         }elseif ($interval->d > 0){
-            return "<td class='bg-danger'>$interval->d Days, $interval->h Hours</td>";
+            return "<td class='bg-danger'>Past Due: $interval->d Days, $interval->h Hours</td>";
         }elseif ($interval->h > 0){
-            return "<td class='bg-danger'>$interval->h Hours, $interval->i Minutes</td>";
+            return "<td class='bg-danger'>Past Due: $interval->h Hours, $interval->i Minutes</td>";
         }elseif ($interval->i > 0){
-            return "<td class='bg-danger'>$interval->i Minutes, $interval->s Seconds</td>";
+            return "<td class='bg-danger'>Past Due: $interval->i Minutes, $interval->s Seconds</td>";
         }elseif ($interval->s > 0){
-            return "<td class='bg-danger'>$interval->s Seconds!</td>";
+            return "<td class='bg-danger'>Past Due: $interval->s Seconds!</td>";
         }
     }
 
@@ -191,7 +186,33 @@ function calculateTime($date1, $date2){
     //return "difference " . $interval->days . " days ";
 }
 
-function adminPage(){
+if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
+    $_SESSION['page'] = "newTodo";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+function todoForm(){
+
+}
+
+function createTodo(){
+
+}
+
+function editTodo($todoID){
+
+}
+
+function deleteTodo(){
+
+}
+
+
+//USERS
+if(isset($_GET['page']) && $_GET['page'] == "users"){
+    $_SESSION['page'] = "users";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+function usersPage(){
     $output = '<table class="table">
   <thead>
     <tr>
@@ -204,7 +225,7 @@ function adminPage(){
     </tr>
   </thead>
   <tbody>';
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT * from m151.users;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -293,7 +314,7 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
         <!-- categories -->
         <label>Categories: </label>
         <div class='form-group form-check'>";
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT * from m151.category;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -320,7 +341,7 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
 //create User
 if(isset($_POST['username'])){
     $categories = array();
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT tag_ID from m151.category;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -339,7 +360,7 @@ if(isset($_POST['username'])){
     $mysqli->close();
 }
 function createUser($username, $firstName, $lastName, $password, $status, $categories){
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $username = trim(htmlspecialchars($username));
     $firstName = trim(htmlspecialchars($firstName));
     $lastName = trim(htmlspecialchars($lastName));
@@ -370,18 +391,6 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
     $_SESSION['page'] = "admin";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-//delete User
-if(isset($_GET['deleteUser'])){
-    deleteUser($_GET['deleteUser']);
-}
-function deleteUser($id){
-    $mysqli = dbconnector(1);
-    $stmt = $mysqli->prepare("delete from m151.users where ID = '$id';");
-    $stmt->execute();
-    $stmt->close();
-    $mysqli->close();
-    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
-}
 //edit User
 if(isset($_GET['editUser'])){
     $_SESSION['page'] = "editUser";
@@ -390,7 +399,7 @@ if(isset($_GET['editUser'])){
 }
 function editUser($userID)
 {
-    $mysqli = dbconnector(1);
+    $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT * from m151.users where ID = '$userID';");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -416,4 +425,38 @@ function editUser($userID)
             return userForm($username, $firstName, $lastName, $categories, $status, $userID);
         }
     }
+}
+//delete User
+if(isset($_GET['deleteUser'])){
+    deleteUser($_GET['deleteUser']);
+}
+function deleteUser($id){
+    $mysqli = dbConnector(1);
+    $stmt = $mysqli->prepare("delete from m151.users where ID = '$id';");
+    $stmt->execute();
+    $stmt->close();
+    $mysqli->close();
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+
+
+//CATEGORIES
+function categoriesPage(){
+
+}
+
+function categoryForm(){
+
+}
+
+function createCategory(){
+
+}
+
+function editCategory(){
+
+}
+
+function deleteCategory(){
+
 }
