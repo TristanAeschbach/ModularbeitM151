@@ -122,7 +122,8 @@ function todoPage(){
   </thead>
   <tbody>';
     $mysqli = dbConnector(1);
-    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.username, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID;");
+    $userID = $_SESSION['ID'];
+    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.username, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $id = $row['todo_ID'];
@@ -148,7 +149,7 @@ function todoPage(){
                             </div></td>
                           <td>$creator</td>
                           <td>$category</td>
-                          <td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content</a></td>
+                          <td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>
                           <td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
                           <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
                         </tr>";
@@ -193,9 +194,7 @@ function calculateTime($date1, $date2){
             return "<td class='bg-danger'>Past Due: $interval->s Seconds!</td>";
         }
     }
-
-// shows the total amount of days (not divided into years, months and days like above)
-    //return "difference " . $interval->days . " days ";
+    return "";
 }
 
 if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
@@ -217,7 +216,7 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
         </div>
         <div class='form-group'>
             <label for='username'>Content</label>
-            <textarea class='form-control' rows='5' id='content' maxlength='255' required>$content</textarea>
+            <textarea class='form-control' rows='5' name='content' id='content' maxlength='255' required>$content</textarea>
         </div>
         
         <div class='form-group'>
@@ -248,7 +247,7 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
         <!-- categories -->
         <label>Category: </label>
         <div class='form-check'>";
-    $mysqli = dbConnector(0);
+    $mysqli = dbConnector(1);
     $userID = $_SESSION['ID'];
     $result = $mysqli->query("SELECT c.name, c.tag_ID from m151.category as c join m151.users_has_category as uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
     if ($result->num_rows > 0) {
@@ -260,7 +259,7 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
                 $checked = "checked";
             }
             $output .= "<label class='form-check-label' for='flexRadioDefault1' > 
-                            <input class='form-check-input' type='radio' name='flexRadioDefault' id='flexRadioDefault1' value='$categoryID' $checked>
+                            <input class='form-check-input' type='radio' name='category' id='flexRadioDefault1' value='$categoryID' $checked required>
                             $category
                         </label>
                         ";
@@ -288,21 +287,54 @@ function createTodo($title, $content, $dueDate, $progress, $priority, $categoryI
     $usersID = $_SESSION['ID'];
 
     $mysqli = dbConnector(1);
-    $stmt = $mysqli->prepare("INSERT INTO m151.todo (title, content, createDate, dueDate, progress, priority, users_ID, category_tag_ID) VALUES (?,?,?,?,?,?,?,?);");
-    $stmt->bind_param("ssssiiii", $title, $content, $createDate, $dueDate, $progress, $priority, $usersID, $categoryID);
+    if(!empty($_SESSION['editTodo'])){
+        $stmt = $mysqli->prepare("UPDATE m151.todo SET title=?, content=?, dueDate=?, progress=?, priority=?, category_tag_ID=? where users_ID = '$usersID'");
+        $stmt->bind_param("sssiii", $title, $content, $dueDate, $progress, $priority, $categoryID);
+        $_SESSION['editTodo'] = "";
+    }else{
+        $stmt = $mysqli->prepare("INSERT INTO m151.todo (title, content, createDate, dueDate, progress, priority, users_ID, category_tag_ID) VALUES (?,?,?,?,?,?,?,?);");
+        $stmt->bind_param("ssssiiii", $title, $content, $createDate, $dueDate, $progress, $priority, $usersID, $categoryID);
+    }
     $stmt->execute();
     $stmt->close();
     $mysqli->close();
     $_SESSION['page'] = "todos";
-    //echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
+if(isset($_GET['editTodo'])){
+    $_SESSION['page'] = "editTodo";
+    $_SESSION['editTodo'] = $_GET['editTodo'];
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
 function editTodo($todoID){
+    $mysqli = dbConnector(1);
+    $result = $mysqli->query("SELECT * from m151.todo where todo_ID = '$todoID';");
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+            $title = $row['title'];
+            $content = $row['content'];
+            $dueDate = $row['dueDate'];
+            $progress = $row['progress'];
+            $priority = $row['priority'];
+            $categoryID = $row['category_tag_ID'];
 
+            return todoForm($title, $content, $priority, $dueDate, $progress, $categoryID);
+    }else{
+        return "todo not found";
+    }
 }
 
-function deleteTodo(){
-
+if(isset($_GET['deleteTodo'])){
+    deleteTodo($_GET['deleteTodo']);
+}
+function deleteTodo($todoID){
+    $mysqli = dbConnector(1);
+    $stmt = $mysqli->prepare("delete from m151.todo where todo_ID = '$todoID';");
+    $stmt->execute();
+    $stmt->close();
+    $mysqli->close();
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
 
@@ -478,10 +510,35 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $userID = $row['ID'];
-            foreach ($categories as $category){
-                $stmt = $mysqli->prepare("INSERT INTO m151.users_has_category (users_ID, category_tag_ID) values (?,?);");
-                $stmt->bind_param("ii", $userID, $category);
-                $stmt->execute();
+            $result1 = $mysqli->query("SELECT * from m151.category;");
+            $result2 = $mysqli->query("SELECT * from m151.users_has_category where users_ID = '$userID';");
+            for ($i=0;$row1 = $result1->fetch_assoc();$i++) {
+                $ID1[$i] = $row1['tag_ID'];
+            }
+            if ($result2->num_rows > 0) {
+                for ($j=0;$row2 = $result2->fetch_assoc();$j++) {
+                    $ID2[$j] = $row2['category_tag_ID'];
+                }
+            }
+            $j=0;
+            for($y=0;$y < $i;$y++){
+                if(isset($ID2[$j])){
+                    if (isset($categories[$ID1[$y]]) && $ID1[$y] == $ID2[$j]) {
+                        $j++;
+                    } elseif(!isset($categories[$ID1[$y]]) && $ID1[$y] == $ID2[$j]) {
+                        $stmt = $mysqli->prepare("DELETE FROM m151.users_has_category WHERE users_ID = '$userID' and category_tag_ID = '$ID2[$j]'");
+                        $stmt->execute();
+                        $j++;
+                    }elseif(isset($categories[$ID1[$y]])){
+                        $stmt = $mysqli->prepare("INSERT INTO m151.users_has_category (users_ID, category_tag_ID) values (?,?);");
+                        $stmt->bind_param("ii", $userID, $ID1[$y]);
+                        $stmt->execute();
+                    }
+                }elseif(isset($categories[$ID1[$y]])){
+                    $stmt = $mysqli->prepare("INSERT INTO m151.users_has_category (users_ID, category_tag_ID) values (?,?);");
+                    $stmt->bind_param("ii", $userID, $ID1[$y]);
+                    $stmt->execute();
+                }
             }
         }
     }
@@ -496,8 +553,7 @@ if(isset($_GET['editUser'])){
     $_SESSION['editUser'] = $_GET['editUser'];
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function editUser($userID)
-{
+function editUser($userID){
     $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT * from m151.users where ID = '$userID';");
     if ($result->num_rows > 0) {
@@ -515,13 +571,11 @@ function editUser($userID)
             $categories = [];
 
             if ($result2->num_rows > 0) {
-                $i = 0;
                 while ($row2 = $result2->fetch_assoc()) {
-                    $categories[$i] = $row2['tag_ID'];
-                    $i++;
+                    $categories[$row2['tag_ID']] = $row2['tag_ID'];
                 }
             }
-            return userForm($username, $firstName, $lastName, $categories, $status, $userID);
+            return userForm($username, $firstName, $lastName, $categories, $status);
         }
     }
 }
@@ -529,9 +583,9 @@ function editUser($userID)
 if(isset($_GET['deleteUser'])){
     deleteUser($_GET['deleteUser']);
 }
-function deleteUser($id){
+function deleteUser($userID){
     $mysqli = dbConnector(1);
-    $stmt = $mysqli->prepare("delete from m151.users where ID = '$id';");
+    $stmt = $mysqli->prepare("delete from m151.users where ID = '$userID';");
     $stmt->execute();
     $stmt->close();
     $mysqli->close();
@@ -541,11 +595,11 @@ function deleteUser($id){
 
 //CATEGORIES
 function categoriesPage(){
-
+    return "categories Page";
 }
 
 function categoryForm(){
-
+    return "categories Page";
 }
 
 function createCategory(){
