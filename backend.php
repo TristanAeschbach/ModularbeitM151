@@ -24,8 +24,16 @@ function dbConnector($admin){
 }
 
 if(isset($_GET['page']) && $_GET['page'] == "default"){
-    if (isset($_SESSION['username'])){
+    if (isset($_SESSION['admin']) == 0){
         $_SESSION['page'] = "todos";
+    }elseif (isset($_SESSION['admin']) == 1){
+        if(isset($_SESSION['page']) && preg_match("/user/i", $_SESSION['page'])){
+            $_SESSION['page'] = "users";
+        }elseif(isset($_SESSION['page']) && preg_match("/categor/i", $_SESSION['page'])){
+            $_SESSION['page'] = "categories";
+        }else{
+            $_SESSION['page'] = "todos";
+        }
     }else{
         $_SESSION['page'] = "login";
     }
@@ -94,6 +102,10 @@ function logout(){
 
 
 //TODOS
+if(isset($_GET['page']) && $_GET['page'] == "todos"){
+    $_SESSION['page'] = "todos";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
 function todoPage(){
     $output = '<table class="table">
   <thead>
@@ -190,12 +202,99 @@ if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
     $_SESSION['page'] = "newTodo";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function todoForm(){
+function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $progress = "", $categoryPreset = ""){
+    $output = "<div class='container'>
+    <h1>Registrierung</h1>
 
+    <form action='backend.php' method='post'>
+        <!-- benutzername -->
+        <div class='form-group'>
+            <label for='username'>Title</label>
+            <input type='text' name='title' class='form-control' id='title'
+            value='$title'
+                   placeholder='Title'
+                   maxlength='30' required>
+        </div>
+        <div class='form-group'>
+            <label for='username'>Content</label>
+            <textarea class='form-control' rows='5' id='content' maxlength='255' required>$content</textarea>
+        </div>
+        
+        <div class='form-group'>
+            <label for='lastname'>Priority 1(high) - 5(low)</label>
+            <input type='text' name='priority' class='form-control' id='priority'
+            value='$priority'
+                   placeholder='priority'
+                   maxlength='1'
+                   required>
+        </div>
+        <!-- vorname -->
+        <div class='form-group'>
+            <label for='firstname'>Due Date</label>
+            <input type='datetime-local' name='dueDate' class='form-control' id='firstname'
+            value='$dueDate'
+                   placeholder='First Name'
+                   required>
+        </div>
+        <!-- nachname -->
+        <div class='form-group'>
+            <label for='lastname'>Progress (0 - 100)</label>
+            <input type='text' name='progress' class='form-control' id='progress'
+            value='$progress'
+                   placeholder='progress'
+                   maxlength='3'
+                   required>
+        </div>
+        <!-- categories -->
+        <label>Category: </label>
+        <div class='form-check'>";
+    $mysqli = dbConnector(0);
+    $userID = $_SESSION['ID'];
+    $result = $mysqli->query("SELECT c.name, c.tag_ID from m151.category as c join m151.users_has_category as uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $checked = "";
+            $category = $row['name'];
+            $categoryID = $row['tag_ID'];
+            if($categoryPreset == $categoryID){
+                $checked = "checked";
+            }
+            $output .= "<label class='form-check-label' for='flexRadioDefault1' > 
+                            <input class='form-check-input' type='radio' name='flexRadioDefault' id='flexRadioDefault1' value='$categoryID' $checked>
+                            $category
+                        </label>
+                        ";
+        }
+
+    }
+    $output .= '</div>
+            <button type="submit" name="button" value="submit" class="btn btn-info" id="submitUser">Submit</button>
+          </form>
+        </div>';
+    $mysqli->close();
+    return $output;
 }
 
-function createTodo(){
+if (isset($_POST['title'])){
+    createTodo($_POST['title'], $_POST['content'], $_POST['dueDate'], $_POST['progress'], $_POST['priority'], $_POST['category']);
+}
+function createTodo($title, $content, $dueDate, $progress, $priority, $categoryID){
+    $title = trim(htmlspecialchars($title));
+    $content = trim(htmlspecialchars($content));
+    $createDate = date("Y-m-d H:i:s");
+    $dueDate = trim(htmlspecialchars($dueDate));
+    $progress = trim(htmlspecialchars($progress));
+    $priority = trim(htmlspecialchars($priority));
+    $usersID = $_SESSION['ID'];
 
+    $mysqli = dbConnector(1);
+    $stmt = $mysqli->prepare("INSERT INTO m151.todo (title, content, createDate, dueDate, progress, priority, users_ID, category_tag_ID) VALUES (?,?,?,?,?,?,?,?);");
+    $stmt->bind_param("ssssiiii", $title, $content, $createDate, $dueDate, $progress, $priority, $usersID, $categoryID);
+    $stmt->execute();
+    $stmt->close();
+    $mysqli->close();
+    $_SESSION['page'] = "todos";
+    //echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
 function editTodo($todoID){
@@ -269,7 +368,7 @@ if(isset($_GET['page']) && $_GET['page'] == "newUser"){
     $_SESSION['page'] = "newUser";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function userForm($username = "", $firstName = "", $lastName = "", $categories = [""], $status = "", $userID = ""){
+function userForm($username = "", $firstName = "", $lastName = "", $categories = [], $status = ""){
     $output = "<div class='container'>
     <h1>Registrierung</h1>
 
@@ -388,7 +487,7 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
     }
     $stmt->close();
     $mysqli->close();
-    $_SESSION['page'] = "admin";
+    $_SESSION['page'] = "users";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 //edit User

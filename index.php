@@ -61,10 +61,11 @@ if(!isset($_SESSION['page'])){
                 </ul>';
                 }
                 if(isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
-                    if(isset($_SESSION['page']) && $_SESSION['page'] == "users" || $_SESSION['page'] == "newUser" || $_SESSION['page'] == "editUser"){
+                    if(isset($_SESSION['page']) && preg_match("/user/i", $_SESSION['page'])){
                         echo '<ul class="nav navbar-nav">
                                 <li><a href="backend.php?page=newUser">New User</a></li>
                                 <li><a href="backend.php?page=categories">Categories</a></li>
+                                <li><a href="backend.php?page=todos">Todos</a></li>
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
@@ -75,10 +76,11 @@ if(!isset($_SESSION['page'])){
                             <ul class="nav navbar-nav navbar-right">
                                 <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
                             </ul>';
-                    }elseif(isset($_SESSION['page']) && $_SESSION['page'] == "categories" || $_SESSION['page'] == "newCategory" || $_SESSION['page'] == "editCategory"){
+                    }elseif(isset($_SESSION['page']) && preg_match("/categor/i", $_SESSION['page'])){
                         echo '<ul class="nav navbar-nav">
                                 <li><a href="backend.php?page=newCategory">New Category</a></li>
                                 <li><a href="backend.php?page=categories">Users</a></li>
+                                <li><a href="backend.php?page=todos">Todos</a></li>
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
