@@ -99,7 +99,52 @@ function logout(){
 }
 
 function userPage(){
-    return "you are user";
+    $output = '<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Title</th>
+      <th scope="col">Priority</th>
+      <th scope="col">Created on: </th>
+      <th scope="col">Due in:</th>
+      <th scope="col">Progress</th>
+      <th scope="col">Created by:</th>
+      <th scope="col">Category:</th>
+    </tr>
+  </thead>
+  <tbody>';
+    $mysqli = dbconnector(0);
+    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.ID, c.tag_ID from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID;");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $id = $row['ID'];
+            $title = $row['title'];
+            $createDate = $row['createDate'];
+            $dueDate = $row['dueDate'];
+            $timeLeft = "";
+            $progress = $row['progress'];
+            $priority = $row['priority'];
+            $creator = $row['ID'];
+            $category = $row['tag_ID'];
+            $output .= "<tr>
+                          <th scope='row'>#$id</th>
+                          <td>$title</td>
+                          <td>$priority</td>
+                          <td>$createDate</td>
+                          <td>$timeLeft</td>
+                          <td>$progress</td>
+                          <td>$creator</td>
+                          <td>$category</td>
+                          <td><a class='btn btn-info' href='backend.php?editUser=$id' role='button'>Edit</a></td>
+                          <td><a class='btn btn-danger' href='backend.php?deleteUser=$id' role='button'>Delete</a></td>
+                        </tr>";
+        }
+    }else{
+        $output .= "no results";
+    }
+    $output .= "</tbody></table>";
+    $mysqli->close();
+    return $output;
 }
 
 function adminPage(){
