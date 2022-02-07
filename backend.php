@@ -113,38 +113,82 @@ function userPage(){
     </tr>
   </thead>
   <tbody>';
-    $mysqli = dbconnector(0);
-    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.ID, c.tag_ID from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID;");
+    $mysqli = dbconnector(1);
+    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.createDate, t.dueDate, t.progress, t.priority, u.username, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            $id = $row['ID'];
+            $id = $row['todo_ID'];
             $title = $row['title'];
-            $createDate = $row['createDate'];
-            $dueDate = $row['dueDate'];
-            $timeLeft = "";
+            $createDate = ltrim($row['createDate'], " ") ;
+            $date1 = new DateTime($row['dueDate']);
+            $date2 = new DateTime(date("Y-m-d H:i:s"));
+            $timeLeft = calculateTime($date1, $date2);
             $progress = $row['progress'];
             $priority = $row['priority'];
-            $creator = $row['ID'];
-            $category = $row['tag_ID'];
+            $creator = $row['username'];
+            $category = $row['name'];
             $output .= "<tr>
                           <th scope='row'>#$id</th>
                           <td>$title</td>
                           <td>$priority</td>
                           <td>$createDate</td>
-                          <td>$timeLeft</td>
-                          <td>$progress</td>
+                          $timeLeft
+                          <td><div class='progress'>
+                                <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em; width: $progress%;'>
+                                    $progress%
+                                </div>
+                            </div></td>
                           <td>$creator</td>
                           <td>$category</td>
-                          <td><a class='btn btn-info' href='backend.php?editUser=$id' role='button'>Edit</a></td>
-                          <td><a class='btn btn-danger' href='backend.php?deleteUser=$id' role='button'>Delete</a></td>
+                          <td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View</a></td>
+                          <td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
+                          <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
                         </tr>";
         }
     }else{
-        $output .= "no results";
+        $output .= "<td>no results</td>";
     }
     $output .= "</tbody></table>";
     $mysqli->close();
     return $output;
+}
+
+function calculateTime($date1, $date2){
+    $interval = $date1->diff($date2);
+    if($date1 > $date2){
+        if($interval->y > 0){
+            return "<td class='bg-success'>$interval->y Years, $interval->m Months</td>";
+        }elseif ($interval->m >0){
+            return "<td class='bg-success'>$interval->m Months, $interval->d Days</td>";
+        }elseif ($interval->d > 0){
+            return "<td class='bg-success'>$interval->d Days, $interval->h Hours</td>";
+        }elseif ($interval->h > 0){
+            return "<td class='bg-success'>$interval->h Hours, $interval->i Minutes</td>";
+        }elseif ($interval->i > 0){
+            return "<td class='bg-success'>$interval->i Minutes, $interval->s Seconds</td>";
+        }elseif ($interval->s > 0){
+            return "<td class='bg-success'>$interval->s Seconds!</td>";
+        }else{
+            return "<td class='bg-danger'>Due now!</td>";
+        }
+    } else{
+        if($interval->y > 0){
+            return "<td class='bg-danger'>$interval->y Years, $interval->m Months</td>";
+        }elseif ($interval->m >0){
+            return "<td class='bg-danger'>$interval->m Months, $interval->d Days</td>";
+        }elseif ($interval->d > 0){
+            return "<td class='bg-danger'>$interval->d Days, $interval->h Hours</td>";
+        }elseif ($interval->h > 0){
+            return "<td class='bg-danger'>$interval->h Hours, $interval->i Minutes</td>";
+        }elseif ($interval->i > 0){
+            return "<td class='bg-danger'>$interval->i Minutes, $interval->s Seconds</td>";
+        }elseif ($interval->s > 0){
+            return "<td class='bg-danger'>$interval->s Seconds!</td>";
+        }
+    }
+
+// shows the total amount of days (not divided into years, months and days like above)
+    //return "difference " . $interval->days . " days ";
 }
 
 function adminPage(){
@@ -193,7 +237,7 @@ function adminPage(){
                         </tr>";
         }
     }else{
-        $output .= "no results";
+        $output .= "<td>no results</td>";
     }
     $output .= "</tbody></table>";
     $mysqli->close();
