@@ -79,7 +79,7 @@ if(!isset($_SESSION['page'])){
                     }elseif(isset($_SESSION['page']) && preg_match("/categor/i", $_SESSION['page'])){
                         echo '<ul class="nav navbar-nav">
                                 <li><a href="backend.php?page=newCategory">New Category</a></li>
-                                <li><a href="backend.php?page=categories">Users</a></li>
+                                <li><a href="backend.php?page=users">Users</a></li>
                                 <li><a href="backend.php?page=todos">Todos</a></li>
                             </ul>
                             <form class="navbar-form navbar-left">
@@ -121,6 +121,9 @@ if(!isset($_SESSION['page'])){
     //Todos
     if(isset($_SESSION['page']) && $_SESSION['page'] == "todos"){
         echo todoPage();
+    }
+    if(isset($_SESSION['page']) && $_SESSION['page'] == "viewTodo"){
+        echo todoPage($_SESSION['viewTodo']);
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newTodo"){
         echo todoForm();
