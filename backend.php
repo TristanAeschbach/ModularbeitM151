@@ -113,7 +113,8 @@ function logout(){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-//I don't even know
+
+//Sorting stuff
 if(isset($_GET['sortRow'])){
     if(isset($_GET['sortDir']) && $_GET['sortDir'] == "desc"){
         $_SESSION['sortDir'] = $_GET['sortDir'];
@@ -149,6 +150,8 @@ if(isset($_GET['sortRow'])){
     }
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
+
+
 //TODOS
 if(isset($_GET['page']) && $_GET['page'] == "todos"){
     $_SESSION['page'] = "todos";
@@ -536,7 +539,6 @@ function validateDate($date, $format = 'Y-m-d H:i:s'){
     $d = DateTime::createFromFormat($format, $date);
     return $d && $d->format($format) === $date;
 }
-
 
 
 //USERS

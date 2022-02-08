@@ -41,6 +41,9 @@ $_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SE
         th {
             cursor: pointer;
         }
+        #btn{
+            color: black;
+        }
     </style>
 </head>
 <body>
