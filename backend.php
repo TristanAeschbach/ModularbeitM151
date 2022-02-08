@@ -24,9 +24,9 @@ function dbConnector($admin){
 }
 
 if(isset($_GET['page']) && $_GET['page'] == "default"){
-    if (isset($_SESSION['admin']) == 0){
+    if (isset($_SESSION['admin']) && $_SESSION['admin'] == 0){
         $_SESSION['page'] = "todos";
-    }elseif (isset($_SESSION['admin']) == 1){
+    }elseif (isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
         if(isset($_SESSION['page']) && preg_match("/user/i", $_SESSION['page'])){
             $_SESSION['page'] = "users";
         }elseif(isset($_SESSION['page']) && preg_match("/categor/i", $_SESSION['page'])){
@@ -90,7 +90,7 @@ if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
                 }
                 session_regenerate_id();
             }else{
-                $loginError[0] = "Passwort falsch.</br>";
+                $loginError['error'] = "Passwort falsch.</br>";
                 $loginError['username'] = $_POST['usernameLogin'];
                 $_SESSION['loginError'] = $loginError;
             }
@@ -98,7 +98,7 @@ if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
 
         }
     }else{
-        $loginError[0] = "Benutzername falsch.</br>";
+        $loginError['error'] = "Benutzername falsch.</br>";
         $loginError['username'] = $_POST['usernameLogin'];
         $_SESSION['loginError'] = $loginError;
     }
@@ -236,23 +236,25 @@ if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
     $_SESSION['page'] = "newTodo";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $progress = "", $categoryPreset = ""){
+function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $progress = "", $categoryPreset = "", $error = ""){
     $dateTime = substr($dueDate, 0, 10)."T".substr($dueDate, 11, 5);
     $output = "<div class='container'>
-    <h1>Registrierung</h1>
-
-    <form action='backend.php' method='post'>
+    <h1>Todo Form</h1>";
+    if(!empty($error)){
+        $output .= "<div class=\"alert alert-danger\" role=\"alert\">" . $error . "</div>";
+    }
+    $output .= "<form action='backend.php' method='post'>
         <!-- benutzername -->
         <div class='form-group'>
             <label for='username'>Title</label>
             <input type='text' name='title' class='form-control' id='title'
             value='$title'
                    placeholder='Title'
-                   maxlength='30' required>
+                   maxlength='45' required>
         </div>
         <div class='form-group'>
             <label for='username'>Content</label>
-            <textarea class='form-control' rows='5' name='content' id='content' maxlength='255'>$content</textarea>
+            <textarea class='form-control' rows='5' name='content' id='content' maxlength='2000'>$content</textarea>
         </div>
         
         <div class='form-group'>
@@ -310,8 +312,50 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
     return $output;
 }
 
-if (isset($_POST['title'])){
-    createTodo($_POST['title'], $_POST['content'], $_POST['dueDate'], $_POST['progress'], $_POST['priority'], $_POST['category']);
+function validateDate($date, $format = 'Y-m-d H:i:s'){
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+if(isset($_POST['title'])){
+    $todoError['error'] = "";
+    if (!isset($_POST['title']) || empty(trim($_POST['title'])) || strlen(trim($_POST['title'])) > 45) {
+        $todoError['error'] .= "Please enter a correct title, no longer than 45 characters.<br />";
+    }
+    $title = htmlspecialchars(trim($_POST['title']));
+    $todoError['title'] = trim(htmlspecialchars($_POST['title']));
+
+    if (strlen(trim($_POST['content'])) > 2000) {
+        // Spezielle Zeichen Escapen > Script Injection verhindern
+        $todoError['error'] .= "Content: Please limit you content to 2000 characters<br />";
+    }
+    $todoError['content'] = htmlspecialchars(trim($_POST['content']));
+
+    if (!isset($_POST['priority']) || empty(trim($_POST['priority'])) || strlen(trim($_POST['priority'])) > 1 || !preg_match("/[1-5]+/", trim($_POST['priority']))) {
+        $todoError['error'] .= "Priority: Please enter a number between 1 and 5. <br />";
+    }
+    $todoError['priority'] = htmlspecialchars(trim($_POST['priority']));
+
+    $dueDate = trim($_POST['dueDate']);
+    if(!isset($_POST['dueDate']) || empty(trim($_POST['dueDate']))){
+        if(!validateDate(trim($_POST['dueDate']))){
+            $todoError['error'] .= "Due Date: Please enter a correct DateTime Format<br />";
+        }
+    }
+    $todoError['dueDate'] = htmlspecialchars(trim($_POST['dueDate']));
+
+    if (!isset($_POST['progress']) || empty(trim($_POST['progress'])) || strlen(trim($_POST['progress'])) > 3 || !preg_match("/[0-9]/", $_POST['progress'])) {
+        $todoError['error'] .= "Progress: Please enter a number between 1 and 100. <br />";
+    }
+    $todoError['progress'] = htmlspecialchars(trim($_POST['progress']));
+
+    $todoError['category'] = $_POST['category'];
+
+    if (empty($todoError['error'])) {
+        createTodo($todoError['title'], $todoError['content'], $todoError['dueDate'], $todoError['progress'], $todoError['priority'], $todoError['category']);
+    } else {
+        $_SESSION['todoError'] = $todoError;
+        echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+    }
 }
 function createTodo($title, $content, $dueDate, $progress, $priority, $categoryID){
     $title = trim(htmlspecialchars($title));
@@ -453,8 +497,9 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
 
     $output = "<div class='container'>
     <h1>User Form</h1>";
+    if(!empty($userError)){
         $output .= "<div class=\"alert alert-danger\" role=\"alert\">" . $userError . "</div>";
-
+    }
     $output .= "<form action='backend.php' method='post'>
         <!-- benutzername -->
         <div class='form-group'>
@@ -521,40 +566,41 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
 //create User
 
 if(isset($_POST['username'])) {
-    $userError[0] = "";
+    $userError['error'] = "";
     if (isset($_POST['username']) && !empty(trim($_POST['username'])) && strlen(trim($_POST['username'])) <= 30) {
         $username = trim($_POST['username']);
         // entspricht der benutzername unseren vogaben (minimal 6 Zeichen, Gross- und Kleinbuchstaben)
-        if (!preg_match("/(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{6,}/", $username)) {
-            $userError[0] .= "Der Benutzername entspricht nicht dem geforderten Format.<br />";
+        if (!preg_match("/[a-zA-Z0-9]{6,}/", $username)) {
+            $userError['error'] .= "Der Benutzername entspricht nicht dem geforderten Format.<br />";
         }
     } else {
         // Ausgabe Fehlermeldung
-        $userError[0] .= "Geben Sie bitte einen korrekten Benutzernamen ein.<br />";
+        $userError['error'] .= "Geben Sie bitte einen korrekten Benutzernamen ein.<br />";
     }
     $userError['username'] = trim(htmlspecialchars($_POST['username']));
+
     if (!isset($_POST['firstname']) || empty(trim($_POST['firstname'])) || strlen(trim($_POST['firstname'])) > 45) {
         // Spezielle Zeichen Escapen > Script Injection verhindern
-        $userError[0] .= "Geben Sie bitte einen korrekten Vornamen ein.<br />";
+        $userError['error'] .= "Geben Sie bitte einen korrekten Vornamen ein.<br />";
     }
     $userError['firstname'] = htmlspecialchars(trim($_POST['firstname']));
-// nachname vorhanden, mindestens 1 Zeichen und maximal 30 zeichen lang
+
     if (!isset($_POST['lastname']) || empty(trim($_POST['lastname'])) || strlen(trim($_POST['lastname'])) > 45) {
         // Spezielle Zeichen Escapen > Script Injection verhindern
-        $userError[0] .= "Geben Sie bitte einen korrekten Nachnamen ein.<br />";
+        $userError['error'] .= "Geben Sie bitte einen korrekten Nachnamen ein.<br />";
     }
     $userError['lastname'] = htmlspecialchars(trim($_POST['lastname']));
-// passwort vorhanden, mindestens 8 Zeichen
+
     if (isset($_POST['password']) && !empty(trim($_POST['password']))) {
         $password = trim($_POST['password']);
         //entspricht das passwort unseren vorgaben? (minimal 8 Zeichen, Zahlen, Buchstaben, keine Zeilenumbrüche, mindestens ein Gross- und ein Kleinbuchstabe)
         if (!preg_match("/(?=^.{8,}$)((?=.*\d+)(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/", $password)) {
-            $userError[0] .= "Das Passwort entspricht nicht dem geforderten Format.<br />";
+            $userError['error'] .= "Das Passwort entspricht nicht dem geforderten Format.<br />";
             $password = trim(htmlspecialchars($_POST['password']));
         }
     } else {
         // Ausgabe Fehlermeldung
-        $userError[0] .= "Geben Sie bitte ein korrektes Passwort ein.<br />";
+        $userError['error'] .= "Geben Sie bitte ein korrektes Passwort ein.<br />";
     }
 // wenn kein Fehler vorhanden ist, schreiben der Daten in die Datenbank
     $categories = array();
@@ -575,7 +621,7 @@ if(isset($_POST['username'])) {
     } else {
         $userError['status'] = 0;
     }
-    if (empty($userError[0])) {
+    if (empty($userError['error'])) {
         createUser($userError['username'], $userError['firstname'], $userError['lastname'], $password, $userError['status'], $userError['categories']);
     } else {
         $_SESSION['userError'] = $userError;

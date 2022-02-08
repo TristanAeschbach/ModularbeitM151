@@ -4,7 +4,6 @@ include 'backend.php';
 if(!isset($_SESSION['page'])){
     $_SESSION['page'] = "login";
 }
-print_r($_SESSION);
 if(isset($_SESSION['loginError'])){
     $loginError = $_SESSION['loginError'];
     $_SESSION['loginError'] = "";
@@ -15,6 +14,7 @@ if(isset($_SESSION['userError'])){
 }
 if(isset($_SESSION['todoError'])){
     $todoError = $_SESSION['todoError'];
+    print_r($todoError);
     $_SESSION['todoError'] = "";
 }
 if(isset($_SESSION['categoryError'])){
@@ -115,13 +115,15 @@ if(isset($_SESSION['categoryError'])){
     </nav>
     <?php
     if(isset($_SESSION['page']) && $_SESSION['page'] == "login"){
-        if(!empty($loginError[0])){
+        if(!empty($loginError['error'])){
             $_SESSION['loginError'] = "";
-            echo login($loginError[0], $loginError['username']);
+            echo login($loginError['error'], $loginError['username']);
         }else{
             echo login();
         }
     }
+
+
     //Todos
     if(isset($_SESSION['page']) && $_SESSION['page'] == "todos"){
         echo todoPage();
@@ -130,27 +132,45 @@ if(isset($_SESSION['categoryError'])){
         echo todoPage($_SESSION['viewTodo']);
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newTodo"){
-        echo todoForm();
+        if(!empty($todoError['error'])){
+            $_SESSION['todoError'] = "";
+            echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
+        }else{
+            echo todoForm();
+        }
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editTodo"){
-        echo editTodo($_SESSION['editTodo']);
+        if(!empty($todoError['error'])){
+            $_SESSION['todoError'] = "";
+            echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
+        }else{
+            echo editTodo($_SESSION['editTodo']);
+        }
     }
+
 
     //Users
     if(isset($_SESSION['page']) && $_SESSION['page'] == "users"){
         echo usersPage();
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
-        if(!empty($userError[0])){
+        if(!empty($userError['error'])){
             $_SESSION['userError'] = "";
-            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError[0]);
+
+            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
         }else{
             echo userForm();
         }
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
-        echo editUser($_SESSION['editUser']);
+        if(!empty($userError['error'])){
+            $_SESSION['userError'] = "";
+            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
+        }else{
+            echo editUser($_SESSION['editUser']);
+        }
     }
+
 
     //Categories
     if(isset($_SESSION['page']) && $_SESSION['page'] == "categories"){
