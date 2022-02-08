@@ -4,6 +4,20 @@ include 'backend.php';
 if(!isset($_SESSION['page'])){
     $_SESSION['page'] = "login";
 }
+print_r($_SESSION);
+if(isset($_SESSION['loginError'])){
+    $loginError = $_SESSION['loginError'];
+}
+if(isset($_SESSION['userError'])){
+    $userError = $_SESSION['userError'];
+    $_SESSION['userError'] = "";
+}
+if(isset($_SESSION['todoError'])){
+    $todoError = $_SESSION['todoError'];
+}
+if(isset($_SESSION['categoryError'])){
+    $categoryError = $_SESSION['categoryError'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -65,7 +79,6 @@ if(!isset($_SESSION['page'])){
                         echo '<ul class="nav navbar-nav">
                                 <li><a href="backend.php?page=newUser">New User</a></li>
                                 <li><a href="backend.php?page=categories">Categories</a></li>
-                                <li><a href="backend.php?page=todos">Todos</a></li>
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
@@ -80,22 +93,6 @@ if(!isset($_SESSION['page'])){
                         echo '<ul class="nav navbar-nav">
                                 <li><a href="backend.php?page=newCategory">New Category</a></li>
                                 <li><a href="backend.php?page=users">Users</a></li>
-                                <li><a href="backend.php?page=todos">Todos</a></li>
-                            </ul>
-                            <form class="navbar-form navbar-left">
-                                <div class="form-group">
-                                    <input type="text" class="form-control" placeholder="Search">
-                                </div>
-                                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-                            </form>
-                            <ul class="nav navbar-nav navbar-right">
-                                <li><a href="backend.php?logout=true"><span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout</a></li>
-                            </ul>';
-                    }else{
-                        echo '<ul class="nav navbar-nav">
-                                <li><a href="backend.php?page=newTodo">New TODO</a></li>
-                                <li><a href="backend.php?page=users">Users</a></li>
-                                <li><a href="backend.php?page=categories">Categories</a></li>
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
@@ -137,7 +134,12 @@ if(!isset($_SESSION['page'])){
         echo usersPage();
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
-        echo userForm();
+        if(!empty($userError[0])){
+            $_SESSION['userError'] = "";
+            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError[0]);
+        }else{
+            echo userForm();
+        }
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
         echo editUser($_SESSION['editUser']);
