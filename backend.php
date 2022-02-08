@@ -39,31 +39,35 @@ if(isset($_GET['page']) && $_GET['page'] == "default"){
 }
 
 //LOGIN / LOGOUT
-function login(){
-    return '<div class="container">
-                <div class="row vertical-offset-100">
-                    <div class="col-md-4 col-md-offset-4">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Please sign in</h3>
-                            </div>
-                            <div class="panel-body">
-                                <form accept-charset="UTF-8" role="form" method="post" action="backend.php">
-                                <fieldset>
-                                    <div class="form-group">
-                                        <input class="form-control" placeholder="Username" name="usernameLogin" type="text" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <input class="form-control" placeholder="Password" name="passwordLogin" type="password" value="" required>
-                                    </div>
-                                    <input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
-                                </fieldset>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+function login($error = "", $username = ""){
+    $output = "<div class='container'>
+    <div class='row vertical-offset-100'>
+        <div class='col-md-4 col-md-offset-4'>
+            <div class='panel panel-default'>";
+    if(!empty($error)){
+        $output .= "<div class=\"alert alert-danger\" role=\"alert\">" . $error . "</div>";
+    }
+    $output .= "<div class='panel-heading'>
+                    <h3 class='panel-title'>Please sign in</h3>
                 </div>
-            </div>';
+                <div class='panel-body'>
+                    <form accept-charset='UTF-8' role='form' method='post' action='backend.php'>
+                        <fieldset>
+                            <div class='form-group'>
+                                <input class='form-control' placeholder='Username' name='usernameLogin' type='text' value='$username' required>
+                            </div>
+                            <div class='form-group'>
+                                <input class='form-control' placeholder='Password' name='passwordLogin' type='password' required>
+                            </div>
+                            <input class='btn btn-lg btn-success btn-block' type='submit' value='Login'>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>";
+    return $output;
 }
 if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
     $mysqli = dbConnector(1);
@@ -86,12 +90,19 @@ if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
                 }
                 session_regenerate_id();
             }else{
-                echo "Benutzername oder Passwort sind falsch";
+                $loginError[0] = "Passwort falsch.</br>";
+                $loginError['username'] = $_POST['usernameLogin'];
+                $_SESSION['loginError'] = $loginError;
             }
             $mysqli->close();
-            echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+
         }
+    }else{
+        $loginError[0] = "Benutzername falsch.</br>";
+        $loginError['username'] = $_POST['usernameLogin'];
+        $_SESSION['loginError'] = $loginError;
     }
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
 if(isset($_GET['logout'])){
@@ -442,9 +453,8 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
 
     $output = "<div class='container'>
     <h1>User Form</h1>";
-    if(!empty($userError)){
         $output .= "<div class=\"alert alert-danger\" role=\"alert\">" . $userError . "</div>";
-    }
+
     $output .= "<form action='backend.php' method='post'>
         <!-- benutzername -->
         <div class='form-group'>
@@ -515,7 +525,7 @@ if(isset($_POST['username'])) {
     if (isset($_POST['username']) && !empty(trim($_POST['username'])) && strlen(trim($_POST['username'])) <= 30) {
         $username = trim($_POST['username']);
         // entspricht der benutzername unseren vogaben (minimal 6 Zeichen, Gross- und Kleinbuchstaben)
-        if (!preg_match("/(?=.*[a-z])(?=.*[A-Z])[a-zA-Z]{6,}/", $username)) {
+        if (!preg_match("/(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{6,}/", $username)) {
             $userError[0] .= "Der Benutzername entspricht nicht dem geforderten Format.<br />";
         }
     } else {

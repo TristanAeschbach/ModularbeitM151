@@ -7,6 +7,7 @@ if(!isset($_SESSION['page'])){
 print_r($_SESSION);
 if(isset($_SESSION['loginError'])){
     $loginError = $_SESSION['loginError'];
+    $_SESSION['loginError'] = "";
 }
 if(isset($_SESSION['userError'])){
     $userError = $_SESSION['userError'];
@@ -14,9 +15,11 @@ if(isset($_SESSION['userError'])){
 }
 if(isset($_SESSION['todoError'])){
     $todoError = $_SESSION['todoError'];
+    $_SESSION['todoError'] = "";
 }
 if(isset($_SESSION['categoryError'])){
     $categoryError = $_SESSION['categoryError'];
+    $_SESSION['categoryError'] = "";
 }
 ?>
 <!DOCTYPE html>
@@ -112,9 +115,13 @@ if(isset($_SESSION['categoryError'])){
     </nav>
     <?php
     if(isset($_SESSION['page']) && $_SESSION['page'] == "login"){
-        echo login();
+        if(!empty($loginError[0])){
+            $_SESSION['loginError'] = "";
+            echo login($loginError[0], $loginError['username']);
+        }else{
+            echo login();
+        }
     }
-
     //Todos
     if(isset($_SESSION['page']) && $_SESSION['page'] == "todos"){
         echo todoPage();
