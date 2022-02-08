@@ -40,6 +40,7 @@ if(isset($_GET['page']) && $_GET['page'] == "default"){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
+//LOGIN / LOGOUT
 function login(){
     return '<div class="container">
                 <div class="row vertical-offset-100">
@@ -91,7 +92,6 @@ if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
     }
 }
 
-
 if(isset($_GET['logout'])){
     logout();
 }
@@ -112,6 +112,7 @@ if(isset($_GET['viewTodo'])){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function todoPage($viewTodo = ""){
+    $_SESSION['editTodo'] = "";
     $output = '<table class="table">
   <thead>
     <tr>
@@ -128,7 +129,7 @@ function todoPage($viewTodo = ""){
   <tbody>';
     $mysqli = dbConnector(1);
     $userID = $_SESSION['ID'];
-    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
+    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $id = $row['todo_ID'];
@@ -141,11 +142,12 @@ function todoPage($viewTodo = ""){
             $progress = $row['progress'];
             $priority = $row['priority'];
             $creator = $row['username'];
+            $creatorID = $row['users_ID'];
             $category = $row['name'];
 
             $output .= "<tr>
                           <th scope='row'>#$id</th>
-                          <td>$title</td>
+                          <td style='word-wrap: break-word;'>$title</td>
                           <td>$priority</td>
                           <td>$createDate</td>
                           $timeLeft
@@ -155,16 +157,20 @@ function todoPage($viewTodo = ""){
                                 </div>
                             </div></td>
                           <td>$creator</td>
-                          <td>$category</td>
-                          <td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
-                          <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
-                          ";
+                          <td>$category</td>";
+            if($userID == $creatorID || $_SESSION['admin'] == 1){
+                $output .= "<td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
+                          <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>";
+            }else{
+                $output .= "<td></td><td></td>";
+            }
             if(isset($viewTodo) && $viewTodo == $id){
                 $output .= "<td><a class='btn btn-success' href='backend.php?page=default' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>
                             </tr>
-                            <tr><td colspan='11' style='word-wrap: break-word;'>$content</td></tr>";
+                            <tr><td colspan='12' style='word-wrap: break-word;'>$content</td></tr>";
             }else{
                 $output .= "<td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content <span class='glyphicon glyphicon-chevron-down' aria-hidden='true'></span></a></td>
+                            <td><a class='btn btn-success' href='backend.php?archiveTodo=$id' role='button'>Archive</a></td>
                         </tr>";
             }
         }
@@ -216,6 +222,7 @@ if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $progress = "", $categoryPreset = ""){
+    $dateTime = substr($dueDate, 0, 10)."T".substr($dueDate, 11, 5);
     $output = "<div class='container'>
     <h1>Registrierung</h1>
 
@@ -230,7 +237,7 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
         </div>
         <div class='form-group'>
             <label for='username'>Content</label>
-            <textarea class='form-control' rows='5' name='content' id='content' maxlength='255' required>$content</textarea>
+            <textarea class='form-control' rows='5' name='content' id='content' maxlength='255'>$content</textarea>
         </div>
         
         <div class='form-group'>
@@ -245,7 +252,7 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
         <div class='form-group'>
             <label for='firstname'>Due Date</label>
             <input type='datetime-local' name='dueDate' class='form-control' id='firstname'
-            value='$dueDate'
+            value='$dateTime'
                    placeholder='First Name'
                    required>
         </div>
@@ -358,6 +365,7 @@ if(isset($_GET['page']) && $_GET['page'] == "users"){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function usersPage(){
+    $_SESSION['editUser'] = "";
     $output = '<table class="table">
   <thead>
     <tr>
@@ -614,21 +622,119 @@ if(isset($_GET['page']) && $_GET['page'] == "categories"){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function categoriesPage(){
-    return "categories Page";
+    $_SESSION['editCategory'] = "";
+    $output = '<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Name</th>
+      <th scope="col">Users</th>
+    </tr>
+  </thead>
+  <tbody>';
+    $mysqli = dbConnector(1);
+    $userID = $_SESSION['ID'];
+    $result = $mysqli->query("SELECT * from m151.category;");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $id = $row['tag_ID'];
+            $name = $row['name'];
+
+            $output .= "<tr>
+                          <th scope='row'>#$id</th>
+                          <td style='word-wrap: break-word;'>$name</td>
+                          <td>
+                          ";
+            $result2 = $mysqli->query("select u.username from m151.users as u join m151.users_has_category as uk on u.ID = uk.users_ID where uk.category_tag_ID = '$id';");
+
+            $blahblah = "";
+            if ($result2->num_rows> 0) {
+                while ($row2 = $result2->fetch_assoc()) {
+                    $username = $row2['username'];
+                    $blahblah .= "$username, ";
+                }
+                $output .= substr(rtrim($blahblah, ", "), 7) ;
+            }else{
+                $output .=  "";
+            }
+            $output .= "</td>
+                            <td><a class='btn btn-info' href='backend.php?editCategory=$id' role='button'>Edit</a></td>
+                            <td><a class='btn btn-danger' href='backend.php?deleteCategory=$id' role='button'>Delete</a></td>
+                            </tr>";
+        }
+    }else{
+        $output .= "<td>no results</td>";
+    }
+    $output .= "</tbody></table>";
+    $mysqli->close();
+    return $output;}
+
+if(isset($_GET['page']) && $_GET['page'] == "newCategory"){
+    $_SESSION['page'] = "newCategory";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+function categoryForm($name = ""){
+
+    $output = "<div class='container'>
+    <h1>Category Form</h1>
+
+    <form action='backend.php' method='post'>
+        <!-- benutzername -->
+        <div class='form-group'>
+            <label for='username'>Name</label>
+            <input type='text' name='catName' class='form-control' id='catName'
+            value='$name'
+                   placeholder='Name'
+                   maxlength='30' required>
+        </div>
+            <button type='submit' name='button' value='submit' class='btn btn-info' id='submitUser'>Submit</button>          </form>
+        </div>";
+    return $output;
 }
 
-function categoryForm(){
-    return "categories Page";
+if(isset($_POST['catName'])){
+    createCategory($_POST['catName']);
+}
+function createCategory($name){
+    $name = trim(htmlspecialchars($name));
+    $mysqli = dbConnector(1);
+    if(!empty($_SESSION['editCategory'])){
+        $catID = $_SESSION['editCategory'];
+        $stmt = $mysqli->prepare("UPDATE m151.category SET name = ? WHERE tag_ID = '$catID'");
+        $_SESSION['editCategory'] = "";
+    }else{
+        $stmt = $mysqli->prepare("INSERT INTO m151.category (name) VALUES (?)");
+    }
+    $stmt->bind_param("s", $name);
+    $stmt->execute();
+    $stmt->close();
+    $mysqli->close();
+    $_SESSION['page'] = "categories";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-function createCategory(){
-
+if(isset($_GET['editCategory'])){
+    $_SESSION['page'] = "editCategory";
+    $_SESSION['editCategory'] = $_GET['editCategory'];
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+function editCategory($catID){
+    $mysqli = dbConnector(1);
+    $result = $mysqli->query("SELECT name FROM m151.category WHERE tag_ID = '$catID'");
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $name = $row['name'];
+        }
+    }
+    return categoryForm($name);
 }
 
-function editCategory(){
-
+if(isset($_GET['deleteCategory'])){
+    deleteCategory($_GET['deleteCategory']);
 }
-
-function deleteCategory(){
-
+function deleteCategory($tagID){
+    $mysqli = dbConnector(1);
+    $stmt = $mysqli->query("DELETE FROM m151.category WHERE tag_ID = '$tagID'");
+    $mysqli->close();
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
