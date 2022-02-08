@@ -6,21 +6,18 @@ if(!isset($_SESSION['page'])){
 }
 if(isset($_SESSION['loginError'])){
     $loginError = $_SESSION['loginError'];
-    $_SESSION['loginError'] = "";
 }
 if(isset($_SESSION['userError'])){
     $userError = $_SESSION['userError'];
-    $_SESSION['userError'] = "";
 }
 if(isset($_SESSION['todoError'])){
     $todoError = $_SESSION['todoError'];
     print_r($todoError);
-    $_SESSION['todoError'] = "";
 }
 if(isset($_SESSION['categoryError'])){
     $categoryError = $_SESSION['categoryError'];
-    $_SESSION['categoryError'] = "";
 }
+$_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SESSION['categoryError'] = "";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,6 +37,11 @@ if(isset($_SESSION['categoryError'])){
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <style>
+        th {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-default">
@@ -69,7 +71,7 @@ if(isset($_SESSION['categoryError'])){
                 </ul>
                 <form class="navbar-form navbar-left">
                     <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Search">
+                        <input type="text" name="searchTodos" id="searchTodos" class="form-control" placeholder="Search">
                     </div>
                     <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                 </form>
@@ -85,7 +87,7 @@ if(isset($_SESSION['categoryError'])){
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
-                                    <input type="text" class="form-control" placeholder="Search">
+                                    <input type="text" class="form-control" placeholder="Search Users" name="searchUsers" id="searchUsers" >
                                 </div>
                                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                             </form>
@@ -99,7 +101,7 @@ if(isset($_SESSION['categoryError'])){
                             </ul>
                             <form class="navbar-form navbar-left">
                                 <div class="form-group">
-                                    <input type="text" class="form-control" placeholder="Search">
+                                    <input type="text" class="form-control" placeholder="Search Categories" name="searchCategories" id="searchCategories">
                                 </div>
                                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                             </form>
@@ -133,7 +135,6 @@ if(isset($_SESSION['categoryError'])){
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newTodo"){
         if(!empty($todoError['error'])){
-            $_SESSION['todoError'] = "";
             echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
         }else{
             echo todoForm();
@@ -141,7 +142,6 @@ if(isset($_SESSION['categoryError'])){
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editTodo"){
         if(!empty($todoError['error'])){
-            $_SESSION['todoError'] = "";
             echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
         }else{
             echo editTodo($_SESSION['editTodo']);
@@ -155,8 +155,6 @@ if(isset($_SESSION['categoryError'])){
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
         if(!empty($userError['error'])){
-            $_SESSION['userError'] = "";
-
             echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
         }else{
             echo userForm();
@@ -164,7 +162,6 @@ if(isset($_SESSION['categoryError'])){
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
         if(!empty($userError['error'])){
-            $_SESSION['userError'] = "";
             echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
         }else{
             echo editUser($_SESSION['editUser']);
@@ -177,12 +174,76 @@ if(isset($_SESSION['categoryError'])){
         echo categoriesPage();
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "newCategory"){
-        echo categoryForm();
+        if(!empty($categoryError['error'])){
+            echo categoryForm($categoryError['name'], $categoryError['error']);
+        }else{
+            echo categoryForm();
+        }
     }
     if(isset($_SESSION['page']) && $_SESSION['page'] == "editCategory"){
-        echo editCategory($_SESSION['editCategory']);
+        if(!empty($categoryError['error'])){
+            echo categoryForm($categoryError['name'], $categoryError['error']);
+        }else{
+            echo editCategory($_SESSION['editCategory']);
+        }
     }
     ?>
+    <script>
+        function sortTable(n = 0) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById('myTable');
+            switching = true;
+            //Set the sorting direction to ascending:
+            dir = 'asc';
+            /*Make a loop that will continue until
+            no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /*Loop through all table rows (except the
+                first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                    one from current row and one from the next:*/
+                    x = rows[i].getElementsByTagName('TD')[n];
+                    y = rows[i + 1].getElementsByTagName('TD')[n];
+                    /*check if the two rows should switch place,
+                    based on the direction, asc or desc:*/
+                    if (dir == 'asc') {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch= true;
+                            break;
+                        }
+                    } else if (dir == 'desc') {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                    and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    //Each time a switch is done, increase this count by 1:
+                    switchcount ++;
+                } else {
+                    /*If no switching has been done AND the direction is 'asc',
+                    set the direction to 'desc' and run the while loop again.*/
+                    if (switchcount == 0 && dir == 'asc') {
+                        dir = 'desc';
+                        switching = true;
+                    }
+                }
+            }
+        }
+    </script>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->

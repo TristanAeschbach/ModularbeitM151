@@ -113,7 +113,42 @@ function logout(){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
+//I don't even know
+if(isset($_GET['sortRow'])){
+    if(isset($_GET['sortDir']) && $_GET['sortDir'] == "desc"){
+        $_SESSION['sortDir'] = $_GET['sortDir'];
+    }else{
+        $_SESSION['sortDir'] = "asc";
+    }
+    if($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo"){
+        if($_GET['sortRow'] == "id"){
+            $_SESSION['sortRow'] = "t.todo_ID";
+        }
+        if($_GET['sortRow'] == "title"){
+            $_SESSION['sortRow'] = "t.title";
+        }
+        if($_GET['sortRow'] == "priority"){
+            $_SESSION['sortRow'] = "t.priority";
+        }
+        if($_GET['sortRow'] == "createDate"){
+            $_SESSION['sortRow'] = "t.createDate";
+        }
+        if($_GET['sortRow'] == "dueDate"){
+            $_SESSION['sortRow'] = "t.dueDate";
+        }
+        if($_GET['sortRow'] == "progress"){
+            $_SESSION['sortRow'] = "t.progress";
+        }
 
+        if($_GET['sortRow'] == "creator"){
+            $_SESSION['sortRow'] = "u.username";
+        }
+        if($_GET['sortRow'] == "category"){
+            $_SESSION['sortRow'] = "c.name";
+        }
+    }
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
 //TODOS
 if(isset($_GET['page']) && $_GET['page'] == "todos"){
     $_SESSION['page'] = "todos";
@@ -126,23 +161,95 @@ if(isset($_GET['viewTodo'])){
 }
 function todoPage($viewTodo = ""){
     $_SESSION['editTodo'] = "";
-    $output = '<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Title</th>
-      <th scope="col">Priority</th>
-      <th scope="col">Created on: </th>
-      <th scope="col">Due Date:</th>
-      <th scope="col">Progress</th>
-      <th scope="col">Created by:</th>
-      <th scope="col">Category:</th>
-    </tr>
-  </thead>
-  <tbody>';
+    $output = '<table class="table" id="myTable">
+                  <thead>
+                    <tr>';
+    /*if(!preg_match("/(t.todo_ID)(t.title)(t.priority)(t.createDate)(t.dueDate)(t.progress)(u.username)(c.name)/",$_SESSION['sortRow']) && $_SESSION['page'] == "todos"){
+        $_SESSION['sortRow'] = "t.todo_ID";
+        $_SESSION['sortDir'] = "asc";
+    }*/
+    if(isset($_SESSION['sortRow'])){
+        if($_SESSION['sortRow'] == "t.todo_ID"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=id&sortDir=desc">ID <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "t.title"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=title&sortDir=desc">Title <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=title&sortDir=asc">Title <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=title&sortDir=asc">Title <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "t.priority"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=priority&sortDir=desc">Priority <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=priority&sortDir=asc">Priority <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=priority&sortDir=asc">Priority <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "t.createDate"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=createDate&sortDir=desc">Created on <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=createDate&sortDir=asc">Created on <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=createDate&sortDir=asc">Created on <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "t.dueDate"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=dueDate&sortDir=desc">Due <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=dueDate&sortDir=asc">Due <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=dueDate&sortDir=asc">Due <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "t.progress"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=progress&sortDir=desc">Progress <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=progress&sortDir=asc">Progress <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=progress&sortDir=asc">Progress <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "u.username"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=creator&sortDir=desc">Creator <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=creator&sortDir=asc">Creator <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=creator&sortDir=asc">Creator <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+        if($_SESSION['sortRow'] == "c.name"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=category&sortDir=desc">Category <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=category&sortDir=asc">Category <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" class="btn" href="backend.php?sortRow=category&sortDir=asc">Category <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+    }
+    $output .= '</tr>
+              </thead>
+              <tbody>';
     $mysqli = dbConnector(1);
     $userID = $_SESSION['ID'];
-    $result = $mysqli->query("SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
+    $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
+    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID' ".$order.";";
+    $result = $mysqli->query($query);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             if($row['archived'] == 0) {
@@ -172,19 +279,19 @@ function todoPage($viewTodo = ""){
                             </div></td>
                           <td>$creator</td>
                           <td>$category</td>";
-                if ($userID == $creatorID || $_SESSION['admin'] == 1) {
+                if ($userID == $creatorID) {
                     $output .= "<td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
-                          <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>";
+                              <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
+                              <td><a class='btn btn-success' href='backend.php?archiveTodo=$id' role='button'>Archive</a></td>";
                 } else {
-                    $output .= "<td></td><td></td>";
+                    $output .= "<td colspan='3'></td>";
                 }
                 if (isset($viewTodo) && $viewTodo == $id) {
                     $output .= "<td><a class='btn btn-success' href='backend.php?page=default' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>
                             </tr>
-                            <tr><td colspan='12' style='word-wrap: break-word;'>$content</td></tr>";
+                            <tr><td colspan='13' style='word-wrap: break-word;'>$content</td></tr>";
                 } else {
                     $output .= "<td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content <span class='glyphicon glyphicon-chevron-down' aria-hidden='true'></span></a></td>
-                            <td><a class='btn btn-success' href='backend.php?archiveTodo=$id' role='button'>Archive</a></td>
                         </tr>";
                 }
             }
@@ -195,41 +302,6 @@ function todoPage($viewTodo = ""){
     $output .= "</tbody></table>";
     $mysqli->close();
     return $output;
-}
-function calculateTime($date1, $date2){
-    $interval = $date1->diff($date2);
-    if($date1 > $date2){
-        if($interval->y > 0){
-            return "<td class='bg-success'>Due in: $interval->y Years, $interval->m Months</td>";
-        }elseif ($interval->m >0){
-            return "<td class='bg-success'>Due in: $interval->m Months, $interval->d Days</td>";
-        }elseif ($interval->d > 0){
-            return "<td class='bg-success'>Due in: $interval->d Days, $interval->h Hours</td>";
-        }elseif ($interval->h > 0){
-            return "<td class='bg-success'>Due in: $interval->h Hours, $interval->i Minutes</td>";
-        }elseif ($interval->i > 0){
-            return "<td class='bg-success'>Due in: $interval->i Minutes, $interval->s Seconds</td>";
-        }elseif ($interval->s > 0){
-            return "<td class='bg-success'>Due in: $interval->s Seconds!</td>";
-        }else{
-            return "<td class='bg-danger'>Due now!</td>";
-        }
-    } else{
-        if($interval->y > 0){
-            return "<td class='bg-danger'>Past Due: $interval->y Years, $interval->m Months</td>";
-        }elseif ($interval->m >0){
-            return "<td class='bg-danger'>Past Due: $interval->m Months, $interval->d Days</td>";
-        }elseif ($interval->d > 0){
-            return "<td class='bg-danger'>Past Due: $interval->d Days, $interval->h Hours</td>";
-        }elseif ($interval->h > 0){
-            return "<td class='bg-danger'>Past Due: $interval->h Hours, $interval->i Minutes</td>";
-        }elseif ($interval->i > 0){
-            return "<td class='bg-danger'>Past Due: $interval->i Minutes, $interval->s Seconds</td>";
-        }elseif ($interval->s > 0){
-            return "<td class='bg-danger'>Past Due: $interval->s Seconds!</td>";
-        }
-    }
-    return "";
 }
 
 if(isset($_GET['page']) && $_GET['page'] == "newTodo"){
@@ -312,10 +384,6 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
     return $output;
 }
 
-function validateDate($date, $format = 'Y-m-d H:i:s'){
-    $d = DateTime::createFromFormat($format, $date);
-    return $d && $d->format($format) === $date;
-}
 if(isset($_POST['title'])){
     $todoError['error'] = "";
     if (!isset($_POST['title']) || empty(trim($_POST['title'])) || strlen(trim($_POST['title'])) > 45) {
@@ -428,6 +496,47 @@ function deleteTodo($todoID){
     $mysqli->close();
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
+
+function calculateTime($date1, $date2){
+    $interval = $date1->diff($date2);
+    if($date1 > $date2){
+        if($interval->y > 0){
+            return "<td class='bg-success'>Due in: $interval->y Years, $interval->m Months</td>";
+        }elseif ($interval->m >0){
+            return "<td class='bg-success'>Due in: $interval->m Months, $interval->d Days</td>";
+        }elseif ($interval->d > 0){
+            return "<td class='bg-success'>Due in: $interval->d Days, $interval->h Hours</td>";
+        }elseif ($interval->h > 0){
+            return "<td class='bg-success'>Due in: $interval->h Hours, $interval->i Minutes</td>";
+        }elseif ($interval->i > 0){
+            return "<td class='bg-success'>Due in: $interval->i Minutes, $interval->s Seconds</td>";
+        }elseif ($interval->s > 0){
+            return "<td class='bg-success'>Due in: $interval->s Seconds!</td>";
+        }else{
+            return "<td class='bg-danger'>Due now!</td>";
+        }
+    } else{
+        if($interval->y > 0){
+            return "<td class='bg-danger'>Past Due: $interval->y Years, $interval->m Months</td>";
+        }elseif ($interval->m >0){
+            return "<td class='bg-danger'>Past Due: $interval->m Months, $interval->d Days</td>";
+        }elseif ($interval->d > 0){
+            return "<td class='bg-danger'>Past Due: $interval->d Days, $interval->h Hours</td>";
+        }elseif ($interval->h > 0){
+            return "<td class='bg-danger'>Past Due: $interval->h Hours, $interval->i Minutes</td>";
+        }elseif ($interval->i > 0){
+            return "<td class='bg-danger'>Past Due: $interval->i Minutes, $interval->s Seconds</td>";
+        }elseif ($interval->s > 0){
+            return "<td class='bg-danger'>Past Due: $interval->s Seconds!</td>";
+        }
+    }
+    return "";
+}
+function validateDate($date, $format = 'Y-m-d H:i:s'){
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+
 
 
 //USERS
@@ -564,45 +673,45 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
     return $output;
 }
 //create User
-
 if(isset($_POST['username'])) {
     $userError['error'] = "";
     if (isset($_POST['username']) && !empty(trim($_POST['username'])) && strlen(trim($_POST['username'])) <= 30) {
         $username = trim($_POST['username']);
-        // entspricht der benutzername unseren vogaben (minimal 6 Zeichen, Gross- und Kleinbuchstaben)
         if (!preg_match("/[a-zA-Z0-9]{6,}/", $username)) {
-            $userError['error'] .= "Der Benutzername entspricht nicht dem geforderten Format.<br />";
+            $userError['error'] .= "Username must be at least 6 characters, with only letters and numbers.<br />";
         }
     } else {
-        // Ausgabe Fehlermeldung
-        $userError['error'] .= "Geben Sie bitte einen korrekten Benutzernamen ein.<br />";
+        $userError['error'] .= "Please enter a username.<br />";
+    }
+    if(empty($_SESSION['editUser'])){
+        $username = trim(htmlspecialchars($_POST['username']));
+        $mysqli = dbConnector(1);
+        $stmt = $mysqli->query("SELECT * FROM m151.users WHERE username = '$username'");
+        if ($stmt->num_rows > 0) {
+            $userError['error'] .= "Username already exists.</br>";
+        }
     }
     $userError['username'] = trim(htmlspecialchars($_POST['username']));
 
     if (!isset($_POST['firstname']) || empty(trim($_POST['firstname'])) || strlen(trim($_POST['firstname'])) > 45) {
-        // Spezielle Zeichen Escapen > Script Injection verhindern
-        $userError['error'] .= "Geben Sie bitte einen korrekten Vornamen ein.<br />";
+        $userError['error'] .= "Please enter a first name.<br />";
     }
     $userError['firstname'] = htmlspecialchars(trim($_POST['firstname']));
 
     if (!isset($_POST['lastname']) || empty(trim($_POST['lastname'])) || strlen(trim($_POST['lastname'])) > 45) {
-        // Spezielle Zeichen Escapen > Script Injection verhindern
         $userError['error'] .= "Geben Sie bitte einen korrekten Nachnamen ein.<br />";
     }
     $userError['lastname'] = htmlspecialchars(trim($_POST['lastname']));
 
     if (isset($_POST['password']) && !empty(trim($_POST['password']))) {
         $password = trim($_POST['password']);
-        //entspricht das passwort unseren vorgaben? (minimal 8 Zeichen, Zahlen, Buchstaben, keine Zeilenumbrüche, mindestens ein Gross- und ein Kleinbuchstabe)
         if (!preg_match("/(?=^.{8,}$)((?=.*\d+)(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/", $password)) {
             $userError['error'] .= "Das Passwort entspricht nicht dem geforderten Format.<br />";
             $password = trim(htmlspecialchars($_POST['password']));
         }
     } else {
-        // Ausgabe Fehlermeldung
         $userError['error'] .= "Geben Sie bitte ein korrektes Passwort ein.<br />";
     }
-// wenn kein Fehler vorhanden ist, schreiben der Daten in die Datenbank
     $categories = array();
     $mysqli = dbConnector(1);
     $result = $mysqli->query("SELECT tag_ID from m151.category;");
@@ -788,27 +897,48 @@ if(isset($_GET['page']) && $_GET['page'] == "newCategory"){
     $_SESSION['page'] = "newCategory";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function categoryForm($name = ""){
-
+function categoryForm($name = "", $error = ""){
     $output = "<div class='container'>
-    <h1>Category Form</h1>
+    <h1>Category Form</h1>";
+    if(!empty($error)){
+        $output .= "<div class=\"alert alert-danger\" role=\"alert\">" . $error . "</div>";
+    }
 
-    <form action='backend.php' method='post'>
-        <!-- benutzername -->
-        <div class='form-group'>
-            <label for='username'>Name</label>
-            <input type='text' name='catName' class='form-control' id='catName'
-            value='$name'
-                   placeholder='Name'
-                   maxlength='30' required>
-        </div>
-            <button type='submit' name='button' value='submit' class='btn btn-info' id='submitUser'>Submit</button>          </form>
-        </div>";
+    $output .= "<form action='backend.php' method='post'>
+                    <div class='form-group'>
+                        <label for='categoryName'>Name  (45)</label>
+                        <input type='text' name='categoryName' class='form-control' id='categoryName'
+                        value='$name'
+                               placeholder='Name'
+                               maxlength='30' required>
+                    </div>
+                    <button type='submit' name='button' value='submit' class='btn btn-info' id='submitUser'>Submit</button>
+                </form>
+            </div>";
     return $output;
 }
 
-if(isset($_POST['catName'])){
-    createCategory($_POST['catName']);
+if(isset($_POST['categoryName'])){
+    $categoryError['error'] = "";
+    if (!isset($_POST['categoryName']) || empty(trim($_POST['categoryName'])) || strlen(trim($_POST['categoryName'])) > 45) {
+        $categoryError['error'] .= "Please set a name, shorter than 45 Characters.</br>";
+    }
+    $name = trim(htmlspecialchars($_POST['categoryName']));
+    if(empty($_SESSION['editCategory'])){
+        $mysqli = dbConnector(1);
+        $stmt = $mysqli->query("SELECT * FROM m151.category WHERE name = '$name'");
+        if ($stmt->num_rows > 0) {
+            $categoryError['error'] .= "Category already exists.</br>";
+        }
+    }
+    $categoryError['name'] = $name;
+    if(empty($categoryError['error'])){
+        createCategory($name);
+    }else{
+        $_SESSION['categoryError'] = $categoryError;
+        echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+    }
+
 }
 function createCategory($name){
     $name = trim(htmlspecialchars($name));
