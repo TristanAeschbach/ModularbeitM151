@@ -38,11 +38,10 @@ $_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SE
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <style>
-        th {
-            cursor: pointer;
-        }
         #btn{
             color: black;
+            cursor: pointer;
+            text-decoration: none;
         }
     </style>
 </head>
