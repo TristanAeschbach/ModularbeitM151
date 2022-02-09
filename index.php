@@ -45,7 +45,6 @@ if(isset($_SESSION['sortRow'])){
     }
     $_SESSION['sortDir'] = "asc";
 }
-print_r($_SESSION)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,9 +98,17 @@ print_r($_SESSION)
                     echo '<ul class="nav navbar-nav">
                     <li><a href="backend.php?page=newTodo">New TODO</a></li>
                 </ul>
-                <form class="navbar-form navbar-left">
+                <form class="navbar-form navbar-left" method="post">
                     <div class="form-group">
                         <input type="text" name="searchTodos" id="searchTodos" class="form-control" placeholder="Search">
+                    </div>
+                    <div class="form-group">
+                        <select name="column" id="column" class="form-control">
+                            <option value="title">Title</option>
+                            <option value="content">Content</option>
+                            <option value="creator">Creator</option>
+                            <option value="category">Category</option>
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                 </form>
@@ -115,9 +122,16 @@ print_r($_SESSION)
                                 <li><a href="backend.php?page=newUser">New User</a></li>
                                 <li><a href="backend.php?page=categories">Categories</a></li>
                             </ul>
-                            <form class="navbar-form navbar-left">
+                            <form class="navbar-form navbar-left" method="post">
                                 <div class="form-group">
                                     <input type="text" class="form-control" placeholder="Search Users" name="searchUsers" id="searchUsers" >
+                                </div>
+                                <div class="form-group">
+                                    <select name="column" id="column" class="form-control">
+                                        <option value="username">Username</option>
+                                        <option value="firstName">First Name</option>
+                                        <option value="lastName">lastName</option>
+                                    </select>
                                 </div>
                                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                             </form>
@@ -129,10 +143,11 @@ print_r($_SESSION)
                                 <li><a href="backend.php?page=newCategory">New Category</a></li>
                                 <li><a href="backend.php?page=users">Users</a></li>
                             </ul>
-                            <form class="navbar-form navbar-left">
+                            <form class="navbar-form navbar-left" method="post">
                                 <div class="form-group">
                                     <input type="text" class="form-control" placeholder="Search Categories" name="searchCategories" id="searchCategories">
                                 </div>
+                                
                                 <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                             </form>
                             <ul class="nav navbar-nav navbar-right">
@@ -145,75 +160,85 @@ print_r($_SESSION)
         </div><!-- /.container-fluid -->
     </nav>
     <?php
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "login"){
-        if(!empty($loginError['error'])){
-            $_SESSION['loginError'] = "";
-            echo login($loginError['error'], $loginError['username']);
-        }else{
-            echo login();
-        }
+    if(isset($_POST['searchTodos'])){
+        $_SESSION['page'] = "";
+        echo searchTodos(htmlspecialchars(trim($_POST['searchTodos'])), $_POST['column']);
     }
-
-
-    //Todos
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "todos"){
-        echo todoPage();
+    if(isset($_POST['searchUsers'])){
+        $_SESSION['page'] = "";
+        echo searchUsers(htmlspecialchars(trim($_POST['searchUsers'])), $_POST['column']);
     }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "viewTodo"){
-        echo todoPage($_SESSION['viewTodo']);
+    if(isset($_POST['searchCategories'])){
+        $_SESSION['page'] = "";
+        echo searchCategories(htmlspecialchars(trim($_POST['searchCategories'])), $_POST['column']);
     }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "newTodo"){
-        if(!empty($todoError['error'])){
-            echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
-        }else{
-            echo todoForm();
-        }
-    }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "editTodo"){
-        if(!empty($todoError['error'])){
-            echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
-        }else{
-            echo editTodo($_SESSION['editTodo']);
-        }
-    }
-
-
-    //Users
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "users"){
-        echo usersPage();
-    }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "newUser"){
-        if(!empty($userError['error'])){
-            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
-        }else{
-            echo userForm();
-        }
-    }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "editUser"){
-        if(!empty($userError['error'])){
-            echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
-        }else{
-            echo editUser($_SESSION['editUser']);
-        }
-    }
-
-
-    //Categories
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "categories"){
-        echo categoriesPage();
-    }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "newCategory"){
-        if(!empty($categoryError['error'])){
-            echo categoryForm($categoryError['name'], $categoryError['error']);
-        }else{
-            echo categoryForm();
-        }
-    }
-    if(isset($_SESSION['page']) && $_SESSION['page'] == "editCategory"){
-        if(!empty($categoryError['error'])){
-            echo categoryForm($categoryError['name'], $categoryError['error']);
-        }else{
-            echo editCategory($_SESSION['editCategory']);
+    if(isset($_SESSION['page'])){
+        switch ($_SESSION['page']){
+            //LOGIN
+            case "login":
+                if(!empty($loginError['error'])){
+                    $_SESSION['loginError'] = "";
+                    echo login($loginError['error'], $loginError['username']);
+                }else{
+                    echo login();
+                }
+                break;
+            //TODOS
+            case "todos":
+                echo todoPage();
+                break;
+            case "viewTodo":
+                echo todoPage($_SESSION['viewTodo']);
+                break;
+            case "newTodo":
+                if(!empty($todoError['error'])){
+                    echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
+                }else{
+                    echo todoForm();
+                }
+                break;
+            case "editTodo":
+                if(!empty($todoError['error'])){
+                    echo todoForm($todoError['title'], $todoError['content'], $todoError['priority'], $todoError['dueDate'], $todoError['progress'], $todoError['category'], $todoError['error']);
+                }else{
+                    echo editTodo($_SESSION['editTodo']);
+                }
+                break;
+            //USERS
+            case "users":
+                echo usersPage();
+                break;
+            case "newUser":
+                if(!empty($userError['error'])){
+                    echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
+                }else{
+                    echo userForm();
+                }
+                break;
+            case "editUser":
+                if(!empty($userError['error'])){
+                    echo userForm($userError['username'], $userError['firstname'], $userError['lastname'], $userError['categories'], $userError['status'], $userError['error']);
+                }else{
+                    echo editUser($_SESSION['editUser']);
+                }
+                break;
+            //CATEGORIES
+            case "categories":
+                echo categoriesPage();
+                break;
+            case "newCategory":
+                if(!empty($categoryError['error'])){
+                    echo categoryForm($categoryError['name'], $categoryError['error']);
+                }else{
+                    echo categoryForm();
+                }
+                break;
+            case "editCategory":
+                if(!empty($categoryError['error'])){
+                    echo categoryForm($categoryError['name'], $categoryError['error']);
+                }else{
+                    echo editCategory($_SESSION['editCategory']);
+                }
         }
     }
     ?>
