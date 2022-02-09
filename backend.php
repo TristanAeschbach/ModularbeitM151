@@ -165,7 +165,26 @@ if(isset($_GET['sortRow'])){
             $_SESSION['sortRow'] = "status";
         }
     }
+    if($_SESSION['page'] == "categories"){
+        if($_GET['sortRow'] == "id"){
+            $_SESSION['sortRow'] = "ID";
+        }
+    }
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+if(!isset($_SESSION['sortRow']) && isset($_SESSION['page'])){
+    if($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo"){
+        $_SESSION['sortRow'] = "t.todo_ID";
+        $_SESSION['sortDir'] = "asc";
+    }
+    if($_SESSION['page'] == "users"){
+        $_SESSION['sortRow'] = "ID";
+        $_SESSION['sortDir'] = "asc";
+    }
+    if($_SESSION['page'] == "categories"){
+        $_SESSION['sortRow'] = "c.tag_ID";
+        $_SESSION['sortDir'] = "asc";
+    }
 }
 
 
@@ -566,51 +585,53 @@ function usersPage(){
     $output = '<table class="table">
   <thead>
     <tr>';
-    if($_SESSION['sortRow'] == "ID"){
-        if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=desc">ID <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+    if(isset($_SESSION['sortRow'])){
+        if($_SESSION['sortRow'] == "ID"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=desc">ID <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
         }else{
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
         }
-    }else{
-        $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
-    }
-    if($_SESSION['sortRow'] == "username"){
-        if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=desc">Username <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+        if($_SESSION['sortRow'] == "username"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=desc">Username <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=asc">Username <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
         }else{
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=asc">Username <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=asc">Username <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
         }
-    }else{
-        $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=username&sortDir=asc">Username <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
-    }
-    if($_SESSION['sortRow'] == "firstName"){
-        if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=desc">First Name <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+        if($_SESSION['sortRow'] == "firstName"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=desc">First Name <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=asc">First Name <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
         }else{
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=asc">First Name <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=asc">First Name <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
         }
-    }else{
-        $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=firstName&sortDir=asc">First Name <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
-    }
-    if($_SESSION['sortRow'] == "lastName"){
-        if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=desc">Last Name <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+        if($_SESSION['sortRow'] == "lastName"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=desc">Last Name <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=asc">Last Name <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
         }else{
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=asc">Last Name <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=asc">Last Name <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
         }
-    }else{
-        $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=lastName&sortDir=asc">Last Name <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
-    }
-    $output .= '<th scope="col">Categories</th>';
-    if($_SESSION['sortRow'] == "status"){
-        if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "desc"){
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=asc">Status <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+        $output .= '<th scope="col">Categories</th>';
+        if($_SESSION['sortRow'] == "status"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "desc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=asc">Status <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=desc">Status <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
         }else{
-            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=desc">Status <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=desc">Status <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
         }
-    }else{
-        $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=status&sortDir=desc">Status <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
     }
     $output .= '</tr>
           </thead>
@@ -908,10 +929,19 @@ function categoriesPage(){
     $_SESSION['editCategory'] = "";
     $output = '<table class="table">
   <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Name</th>
-      <th scope="col">Users</th>
+    <tr>';
+    if(isset($_SESSION['sortRow'])){
+        if($_SESSION['sortRow'] == "t.todo_ID"){
+            if(isset($_SESSION['sortDir']) && $_SESSION['sortDir'] == "asc"){
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=desc">ID <span class="glyphicon glyphicon-sort-by-attributes" aria-hidden="true"></span></a></th>';
+            }else{
+                $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span></a></th>';
+            }
+        }else{
+            $output .= '<th scope="col"><a id="btn" href="backend.php?sortRow=id&sortDir=asc">ID <span class="glyphicon glyphicon-sort" aria-hidden="true"></span></a></th>';
+        }
+    }
+    $output .= '<th scope="col">Users</th>
     </tr>
   </thead>
   <tbody>';
@@ -1043,17 +1073,3 @@ function deleteCategory($tagID){
 }
 
 //more sorting stuff
-if(!isset($_SESSION['sortRow']) && isset($_SESSION['page'])){
-    if($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo"){
-        $_SESSION['sortRow'] = "t.todo_ID";
-        $_SESSION['sortDir'] = "asc";
-    }
-    if($_SESSION['page'] == "users"){
-        $_SESSION['sortRow'] = "ID";
-        $_SESSION['sortDir'] = "asc";
-    }
-    if($_SESSION['page'] == "categories"){
-        $_SESSION['sortRow'] = "c.tag_ID";
-        $_SESSION['sortDir'] = "asc";
-    }
-}
