@@ -12,12 +12,37 @@ if(isset($_SESSION['userError'])){
 }
 if(isset($_SESSION['todoError'])){
     $todoError = $_SESSION['todoError'];
-    print_r($todoError);
 }
 if(isset($_SESSION['categoryError'])){
     $categoryError = $_SESSION['categoryError'];
 }
 $_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SESSION['categoryError'] = "";
+
+if(isset($_SESSION['sortRow'])){
+    if(isset($_SESSION['page'])){
+        if (($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo") && !preg_match("/title|priority|createDate|dueDate|progress|username|name/", $_SESSION['sortRow'])){
+            $_SESSION['sortRow'] = "t.todo_ID";
+        }
+        if ($_SESSION['page'] == "users" && !preg_match("/username|firstName|lastName|status/", $_SESSION['sortRow'])){
+            $_SESSION['sortRow'] = "ID";
+        }
+        if ($_SESSION['page'] == "categories" && !preg_match("/name/", $_SESSION['sortRow'])){
+            $_SESSION['sortRow'] = "tag_ID";
+        }
+    }
+}elseif(isset($_SESSION['page'])){
+    if ($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo"){
+        $_SESSION['sortRow'] = "t.todo_ID";
+    }
+    if ($_SESSION['page'] == "users"){
+        $_SESSION['sortRow'] = "ID";
+    }
+    if ($_SESSION['page'] == "categories"){
+        $_SESSION['sortRow'] = "tag_ID";
+    }
+    $_SESSION['sortDir'] = "asc";
+}
+print_r($_SESSION)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -112,8 +137,7 @@ $_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SE
                             </ul>';
                     }
                 }
-                ?>
-
+                ?> <!-- different Headers for different pages/profiles-->
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
     </nav>
