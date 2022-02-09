@@ -4,6 +4,8 @@ include 'backend.php';
 if(!isset($_SESSION['page'])){
     $_SESSION['page'] = "login";
 }
+
+//wrong input messages
 if(isset($_SESSION['loginError'])){
     $loginError = $_SESSION['loginError'];
 }
@@ -18,15 +20,16 @@ if(isset($_SESSION['categoryError'])){
 }
 $_SESSION['loginError'] = $_SESSION['userError'] = $_SESSION['todoError'] = $_SESSION['categoryError'] = "";
 
+//more sorting stuff
 if(isset($_SESSION['sortRow'])){
     if(isset($_SESSION['page'])){
-        if (($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo") && !preg_match("/title|priority|createDate|dueDate|progress|username|name/", $_SESSION['sortRow'])){
+        if (($_SESSION['page'] == "todos" || $_SESSION['page'] == "viewTodo") && !preg_match("/title|priority|createDate|dueDate|progress|username|name/i", $_SESSION['sortRow'])){
             $_SESSION['sortRow'] = "t.todo_ID";
         }
-        if ($_SESSION['page'] == "users" && !preg_match("/username|firstName|lastName|status/", $_SESSION['sortRow'])){
+        if ($_SESSION['page'] == "users" && !preg_match("/username|firstName|lastName|status/i", $_SESSION['sortRow'])){
             $_SESSION['sortRow'] = "ID";
         }
-        if ($_SESSION['page'] == "categories" && !preg_match("/name/", $_SESSION['sortRow'])){
+        if ($_SESSION['page'] == "categories" && !preg_match("/\bname/", $_SESSION['sortRow'])){
             $_SESSION['sortRow'] = "tag_ID";
         }
     }

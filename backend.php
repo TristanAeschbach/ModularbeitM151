@@ -455,10 +455,11 @@ function createTodo($title, $content, $dueDate, $progress, $priority, $categoryI
     $progress = trim(htmlspecialchars($progress));
     $priority = trim(htmlspecialchars($priority));
     $usersID = $_SESSION['ID'];
+    $todoID = $_SESSION['editTodo'];
 
     $mysqli = dbConnector(1);
     if(!empty($_SESSION['editTodo'])){
-        $stmt = $mysqli->prepare("UPDATE m151.todo SET title=?, content=?, dueDate=?, progress=?, priority=?, category_tag_ID=? where users_ID = '$usersID'");
+        $stmt = $mysqli->prepare("UPDATE m151.todo SET title=?, content=?, dueDate=?, progress=?, priority=?, category_tag_ID=? where todo_ID = '$todoID'");
         $stmt->bind_param("sssiii", $title, $content, $dueDate, $progress, $priority, $categoryID);
         $_SESSION['editTodo'] = "";
     }else{
