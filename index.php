@@ -70,6 +70,9 @@ if(isset($_SESSION['sortRow'])){
             cursor: pointer;
             text-decoration: none;
         }
+        #btn:hover{
+            color: darkgrey;
+        }
     </style>
 </head>
 <body>
