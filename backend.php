@@ -449,6 +449,7 @@ function deleteTodo($todoID){
 }
 
 if(isset($_POST['searchTodos'])){
+    $_SESSION['page'] = "todos";
     $_SESSION['search'] = " and ".$_POST['column']." like '%".htmlspecialchars(trim($_POST['searchTodos']))."%'";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
@@ -928,6 +929,7 @@ function deleteUser($userID){
 }
 
 if(isset($_POST['searchUsers'])){
+    $_SESSION['page'] = "users";
     $_SESSION['search'] = "WHERE ".$_POST['column']." like '%".htmlspecialchars(trim($_POST['searchUsers']))."%' ";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
@@ -1096,6 +1098,7 @@ function deleteCategory($tagID){
 }
 
 if(isset($_POST['searchCategories'])){
+    $_SESSION['page'] = "categories";
     $_SESSION['search'] = "WHERE name like '%".htmlspecialchars(trim($_POST['searchCategories']))."%'";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
