@@ -98,16 +98,16 @@ if(isset($_SESSION['sortRow'])){
                     echo '<ul class="nav navbar-nav">
                     <li><a href="backend.php?page=newTodo">New TODO</a></li>
                 </ul>
-                <form class="navbar-form navbar-left" method="post">
+                <form class="navbar-form navbar-left" method="post" action="backend.php">
                     <div class="form-group">
                         <input type="text" name="searchTodos" id="searchTodos" class="form-control" placeholder="Search">
                     </div>
                     <div class="form-group">
                         <select name="column" id="column" class="form-control">
-                            <option value="title">Title</option>
-                            <option value="content">Content</option>
-                            <option value="creator">Creator</option>
-                            <option value="category">Category</option>
+                            <option value="t.title">Title</option>
+                            <option value="t.content">Content</option>
+                            <option value="u.username">Creator</option>
+                            <option value="c.name">Category</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
@@ -122,7 +122,7 @@ if(isset($_SESSION['sortRow'])){
                                 <li><a href="backend.php?page=newUser">New User</a></li>
                                 <li><a href="backend.php?page=categories">Categories</a></li>
                             </ul>
-                            <form class="navbar-form navbar-left" method="post">
+                            <form class="navbar-form navbar-left" method="post" action="backend.php">
                                 <div class="form-group">
                                     <input type="text" class="form-control" placeholder="Search Users" name="searchUsers" id="searchUsers" >
                                 </div>
@@ -143,7 +143,7 @@ if(isset($_SESSION['sortRow'])){
                                 <li><a href="backend.php?page=newCategory">New Category</a></li>
                                 <li><a href="backend.php?page=users">Users</a></li>
                             </ul>
-                            <form class="navbar-form navbar-left" method="post">
+                            <form class="navbar-form navbar-left" method="post" action="backend.php">
                                 <div class="form-group">
                                     <input type="text" class="form-control" placeholder="Search Categories" name="searchCategories" id="searchCategories">
                                 </div>
@@ -160,19 +160,7 @@ if(isset($_SESSION['sortRow'])){
         </div><!-- /.container-fluid -->
     </nav>
     <?php
-    if(isset($_POST['searchTodos'])){
-        $_SESSION['page'] = "";
-        echo searchTodos(htmlspecialchars(trim($_POST['searchTodos'])), $_POST['column']);
-    }
-    if(isset($_POST['searchUsers'])){
-        $_SESSION['page'] = "";
-        echo searchUsers(htmlspecialchars(trim($_POST['searchUsers'])), $_POST['column']);
-    }
-    if(isset($_POST['searchCategories'])){
-        $_SESSION['page'] = "";
-        echo searchCategories(htmlspecialchars(trim($_POST['searchCategories'])), $_POST['column']);
-    }
-    if(isset($_SESSION['page'])){
+    if(isset($_SESSION['page']) && preg_match("/login|todo|user|categor/i", $_SESSION['page'])){
         switch ($_SESSION['page']){
             //LOGIN
             case "login":
@@ -185,10 +173,18 @@ if(isset($_SESSION['sortRow'])){
                 break;
             //TODOS
             case "todos":
-                echo todoPage();
+                if(!empty($_SESSION['search'])){
+                    echo todoPage("", $_SESSION['search']);
+                }else{
+                    echo todoPage();
+                }
                 break;
             case "viewTodo":
-                echo todoPage($_SESSION['viewTodo']);
+                if(!empty($_SESSION['search'])){
+                    echo todoPage($_SESSION['viewTodo'], $_SESSION['search']);
+                }else{
+                    echo todoPage($_SESSION['viewTodo']);
+                }
                 break;
             case "newTodo":
                 if(!empty($todoError['error'])){
@@ -206,7 +202,11 @@ if(isset($_SESSION['sortRow'])){
                 break;
             //USERS
             case "users":
-                echo usersPage();
+                if(!empty($_SESSION['search'])){
+                    echo usersPage($_SESSION['search']);
+                }else{
+                    echo usersPage();
+                }
                 break;
             case "newUser":
                 if(!empty($userError['error'])){
@@ -224,7 +224,11 @@ if(isset($_SESSION['sortRow'])){
                 break;
             //CATEGORIES
             case "categories":
-                echo categoriesPage();
+                if(!empty($_SESSION['search'])){
+                    echo categoriesPage($_SESSION['search']);
+                }else{
+                    echo categoriesPage();
+                }
                 break;
             case "newCategory":
                 if(!empty($categoryError['error'])){

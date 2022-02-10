@@ -25,11 +25,14 @@ function dbConnector($admin){
 
 if(isset($_GET['page']) && $_GET['page'] == "default"){
     if (isset($_SESSION['admin']) && $_SESSION['admin'] == 0){
+        $_SESSION['search'] = "";
         $_SESSION['page'] = "todos";
     }elseif (isset($_SESSION['admin']) && $_SESSION['admin'] == 1){
         if(isset($_SESSION['page']) && preg_match("/user/i", $_SESSION['page'])){
+            $_SESSION['search'] = "";
             $_SESSION['page'] = "users";
         }elseif(isset($_SESSION['page']) && preg_match("/categor/i", $_SESSION['page'])){
+            $_SESSION['search'] = "";
             $_SESSION['page'] = "categories";
         }
     }else{
@@ -177,6 +180,7 @@ if(isset($_GET['sortRow']) && isset($_SESSION['page'])){
 //TODOS
 if(isset($_GET['page']) && $_GET['page'] == "todos"){
     $_SESSION['page'] = "todos";
+    $_SESSION['search'] = "";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 if(isset($_GET['viewTodo'])){
@@ -184,13 +188,13 @@ if(isset($_GET['viewTodo'])){
     $_SESSION['viewTodo'] = $_GET['viewTodo'];
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function todoPage($viewTodo = ""){
+function todoPage($viewTodo = "", $search = ""){
     $_SESSION['editTodo'] = "";
     $output = todoTableHeader();
     $mysqli = dbConnector(1);
     $userID = $_SESSION['ID'];
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
-    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID' ".$order.";";
+    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID'".$search." ".$order.";";
     $result = $mysqli->query($query);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -229,8 +233,12 @@ function todoPage($viewTodo = ""){
                     $output .= "<td colspan='3'></td>";
                 }
                 if (isset($viewTodo) && $viewTodo == $id) {
-                    $output .= "<td><a class='btn btn-success' href='backend.php?page=default' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>
-                            </tr>
+                    if(!empty($search)){
+                        $output .= "<td><a class='btn btn-success' href='backend.php?page=viewSearched' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>";
+                    }else{
+                        $output .= "<td><a class='btn btn-success' href='backend.php?page=default' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>";
+                    }
+                    $output .= "</tr>
                             <tr><td colspan='13' style='word-wrap: break-word;'>$content</td></tr>";
                 } else {
                     $output .= "<td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content <span class='glyphicon glyphicon-chevron-down' aria-hidden='true'></span></a></td>
@@ -440,68 +448,13 @@ function deleteTodo($todoID){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-function searchTodos($term, $column){
-    $_SESSION['editTodo'] = "";
-    $output = todoTableHeader();
-    $term = htmlspecialchars(trim($term));
-    $term = "%$term%";
-    $mysqli = dbConnector(1);
-    $userID = $_SESSION['ID'];
-    $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
-    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID' and ".$column." like '".$term."' ".$order.";";
-    $result = $mysqli->query($query);
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            if($row['archived'] == 0) {
-                $id = $row['todo_ID'];
-                $title = $row['title'];
-                $content = $row['content'];
-                $createDate = ltrim($row['createDate'], " ");
-                $date1 = new DateTime($row['dueDate']);
-                $date2 = new DateTime(date("Y-m-d H:i:s"));
-                $timeLeft = calculateTime($date1, $date2);
-                $progress = $row['progress'];
-                $priority = $row['priority'];
-                $creator = $row['username'];
-                $creatorID = $row['users_ID'];
-                $category = $row['name'];
-
-                $output .= "<tr>
-                          <th scope='row'>#$id</th>
-                          <td style='word-wrap: break-word;'>$title</td>
-                          <td>$priority</td>
-                          <td>$createDate</td>
-                          $timeLeft
-                          <td><div class='progress'>
-                                <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em; width: $progress%;'>
-                                    $progress%
-                                </div>
-                            </div></td>
-                          <td>$creator</td>
-                          <td>$category</td>";
-                if ($userID == $creatorID) {
-                    $output .= "<td><a class='btn btn-info' href='backend.php?editTodo=$id' role='button'>Edit</a></td>
-                              <td><a class='btn btn-danger' href='backend.php?deleteTodo=$id' role='button'>Delete</a></td>
-                              <td><a class='btn btn-success' href='backend.php?archiveTodo=$id' role='button'>Archive</a></td>";
-                } else {
-                    $output .= "<td colspan='3'></td>";
-                }
-                if (isset($viewTodo) && $viewTodo == $id) {
-                    $output .= "<td><a class='btn btn-success' href='backend.php?page=default' role='button'>View Content <span class='glyphicon glyphicon-chevron-up' aria-hidden='true'></span></a></td>
-                            </tr>
-                            <tr><td colspan='13' style='word-wrap: break-word;'>$content</td></tr>";
-                } else {
-                    $output .= "<td><a class='btn btn-success' href='backend.php?viewTodo=$id' role='button'>View Content <span class='glyphicon glyphicon-chevron-down' aria-hidden='true'></span></a></td>
-                        </tr>";
-                }
-            }
-        }
-    }else{
-        $output .= "<td>no results</td>";
-    }
-    $output .= "</tbody></table>";
-    $mysqli->close();
-    return $output;
+if(isset($_POST['searchTodos'])){
+    $_SESSION['search'] = " and ".$_POST['column']." like '%".htmlspecialchars(trim($_POST['searchTodos']))."%'";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+if(isset($_GET['page']) && $_GET['page'] == "viewSearched"){
+    $_SESSION['page'] = "todos";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
 function calculateTime($date1, $date2){
@@ -631,10 +584,11 @@ function todoTableHeader(){
 
 //USERS
 if(isset($_GET['page']) && $_GET['page'] == "users"){
+    $_SESSION['search'] = "";
     $_SESSION['page'] = "users";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function usersPage(){
+function usersPage($search = ""){
     $_SESSION['editUser'] = "";
     $output = '<table class="table">
   <thead>
@@ -692,7 +646,7 @@ function usersPage(){
           <tbody>';
     $mysqli = dbConnector(1);
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
-    $result = $mysqli->query("SELECT * from m151.users ".$order.";");
+    $result = $mysqli->query("SELECT * from m151.users ".$search.$order.";");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $id = $row['ID'];
@@ -973,17 +927,19 @@ function deleteUser($userID){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-function searchUsers($term, $column){
-    return "searched users";
+if(isset($_POST['searchUsers'])){
+    $_SESSION['search'] = "WHERE ".$_POST['column']." like '%".htmlspecialchars(trim($_POST['searchUsers']))."%' ";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
 
 //CATEGORIES
 if(isset($_GET['page']) && $_GET['page'] == "categories"){
+    $_SESSION['search'] = "";
     $_SESSION['page'] = "categories";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-function categoriesPage(){
+function categoriesPage($search = ""){
     $_SESSION['editCategory'] = "";
     $output = '<table class="table">
   <thead>
@@ -1014,7 +970,7 @@ function categoriesPage(){
   <tbody>';
     $mysqli = dbConnector(1);
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
-    $result = $mysqli->query("SELECT * from m151.category ".$order.";");
+    $result = $mysqli->query("SELECT * from m151.category ".$search.$order.";");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $id = $row['tag_ID'];
@@ -1139,6 +1095,7 @@ function deleteCategory($tagID){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-function searchCategories($term, $column){
-    return "searched categories";
+if(isset($_POST['searchCategories'])){
+    $_SESSION['search'] = "WHERE name like '%".htmlspecialchars(trim($_POST['searchCategories']))."%'";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
