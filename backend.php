@@ -5,13 +5,13 @@ if(!isset($_SESSION)){
 
 function dbConnector($admin){
     $host     = 'localhost';       // host
-    $password = '123456';        // Passwort
+    $password = '';        // Passwort
     $database = 'm151';   // database
 
     if($admin == 1){
-        $username = 'adminM151';
+        $username = 'root';
     }else{
-        $username = 'userM151';
+        $username = 'root';
     }
 // Verbindung herstellen
     $mysqli = new mysqli($host, $username, $password, $database);
@@ -276,7 +276,7 @@ function todoPage($viewTodo = "", $search = ""){
     $result = $mysqli->query($query);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            if($row['archived'] == 0) {
+            if($row['archived'] == 0  || !empty($search)) {
                 $id = $row['todo_ID'];
                 $title = $row['title'];
                 $content = $row['content'];
@@ -575,10 +575,6 @@ function validateDate($date, $format = 'Y-m-d H:i:s'){
     $d = DateTime::createFromFormat($format, $date);
     return $d && $d->format($format) === $date;
 }
-function todoTableHeader(){
-
-    return $output;
-}
 
 
 //USERS
@@ -683,7 +679,7 @@ function usersPage($search = ""){
     $mysqli->close();
     return $output;
 }
-
+//Form for creating User
 if(isset($_GET['page']) && $_GET['page'] == "newUser"){
     $_SESSION['page'] = "newUser";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
@@ -925,7 +921,7 @@ function deleteUser($userID){
     $mysqli->close();
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-
+//search Users
 if(isset($_POST['searchUsers'])){
     $_SESSION['page'] = "users";
     $_SESSION['search'] = "WHERE ".$_POST['column']." like '%".htmlspecialchars(trim($_POST['searchUsers']))."%' ";

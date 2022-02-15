@@ -255,4 +255,3 @@ if(isset($_SESSION['sortRow'])){
 <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
-
