@@ -1,3 +1,2 @@
 <?php
-require "backend.php";
-print_r($_POST);
+echo password_hash("123", PASSWORD_DEFAULT);

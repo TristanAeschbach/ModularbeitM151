@@ -3,16 +3,12 @@ if(!isset($_SESSION)){
     session_start();
 }
 
-function dbConnector($admin){
+function dbConnector(){
     $host     = 'localhost';       // host
-    $password = '';        // Passwort
+    $username = 'm151';
+    $password = '123456';        // Passwort
     $database = 'm151';   // database
 
-    if($admin == 1){
-        $username = 'root';
-    }else{
-        $username = 'root';
-    }
 // Verbindung herstellen
     $mysqli = new mysqli($host, $username, $password, $database);
 
@@ -73,7 +69,7 @@ function login($error = "", $username = ""){
     return $output;
 }
 if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
 
     $username = htmlspecialchars(trim($_POST['usernameLogin']));
     $password = htmlspecialchars($_POST['passwordLogin']);
@@ -269,10 +265,10 @@ function todoPage($viewTodo = "", $search = ""){
     $output .= '</tr>
               </thead>
               <tbody>';
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $userID = $_SESSION['ID'];
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
-    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.users_has_category uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID'".$search." ".$order.";";
+    $query = "SELECT t.todo_ID, t.title, t.content, t.createDate, t.dueDate, t.progress, t.priority, u.username, t.users_ID, c.name, t.archived from m151.todo as t join m151.users as u on u.ID = t.users_ID join m151.category as c on c.tag_ID = t.category_tag_ID join m151.category_has_users uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID'".$search." ".$order.";";
     $result = $mysqli->query($query);
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -385,9 +381,9 @@ function todoForm($title = "", $content = "", $priority = "", $dueDate = "", $pr
         <!-- categories -->
         <label>Category: </label>
         <div class='form-check'>";
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $userID = $_SESSION['ID'];
-    $result = $mysqli->query("SELECT c.name, c.tag_ID from m151.category as c join m151.users_has_category as uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
+    $result = $mysqli->query("SELECT c.name, c.tag_ID from m151.category as c join m151.category_has_users as uhc on c.tag_ID = uhc.category_tag_ID where uhc.users_ID = '$userID';");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $checked = "";
@@ -463,7 +459,7 @@ function createTodo($title, $content, $dueDate, $progress, $priority, $categoryI
     $usersID = $_SESSION['ID'];
     $todoID = $_SESSION['editTodo'];
 
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     if(!empty($_SESSION['editTodo'])){
         $stmt = $mysqli->prepare("UPDATE m151.todo SET title=?, content=?, dueDate=?, progress=?, priority=?, category_tag_ID=? where todo_ID = '$todoID'");
         $stmt->bind_param("sssiii", $title, $content, $dueDate, $progress, $priority, $categoryID);
@@ -485,7 +481,7 @@ if(isset($_GET['editTodo'])){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function editTodo($todoID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $result = $mysqli->query("SELECT * from m151.todo where todo_ID = '$todoID';");
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
@@ -506,7 +502,7 @@ if(isset($_GET['archiveTodo'])){
     archiveTodo($_GET['archiveTodo']);
 }
 function archiveTodo($todoID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $stmt = $mysqli->prepare("UPDATE m151.todo SET archived = '1' WHERE todo_ID = '$todoID';");
     $stmt->execute();
     $stmt->close();
@@ -518,7 +514,7 @@ if(isset($_GET['deleteTodo'])){
     deleteTodo($_GET['deleteTodo']);
 }
 function deleteTodo($todoID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $stmt = $mysqli->prepare("delete from m151.todo where todo_ID = '$todoID';");
     $stmt->execute();
     $stmt->close();
@@ -639,7 +635,7 @@ function usersPage($search = ""){
     $output .= '</tr>
           </thead>
           <tbody>';
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
     $result = $mysqli->query("SELECT * from m151.users ".$search.$order.";");
     if ($result->num_rows > 0) {
@@ -655,7 +651,7 @@ function usersPage($search = ""){
                           <td>$firstName</td>
                           <td>$lastName</td>
                           <td>";
-            $result2 = $mysqli->query("select c.name from m151.users as u join m151.users_has_category as uk on u.ID = uk.users_ID join m151.category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
+            $result2 = $mysqli->query("select c.name from m151.users as u join m151.category_has_users as uk on u.ID = uk.users_ID join m151.category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
 
                 if ($result2->num_rows> 0) {
                     while ($row2 = $result2->fetch_assoc()) {
@@ -731,7 +727,7 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
         <!-- categories -->
         <label>Categories: </label>
         <div class='form-group form-check'>";
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $result = $mysqli->query("SELECT * from m151.category;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -767,7 +763,7 @@ if(isset($_POST['username'])) {
     }
     if(empty($_SESSION['editUser'])){
         $username = trim(htmlspecialchars($_POST['username']));
-        $mysqli = dbConnector(1);
+        $mysqli = dbConnector();
         $stmt = $mysqli->query("SELECT * FROM m151.users WHERE username = '$username'");
         if ($stmt->num_rows > 0) {
             $userError['error'] .= "Username already exists.</br>";
@@ -795,7 +791,7 @@ if(isset($_POST['username'])) {
         $userError['error'] .= "Geben Sie bitte ein korrektes Passwort ein.<br />";
     }
     $categories = array();
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $result = $mysqli->query("SELECT tag_ID from m151.category;");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -820,7 +816,7 @@ if(isset($_POST['username'])) {
     }
 }
 function createUser($username, $firstName, $lastName, $password, $status, $categories){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $username = trim(htmlspecialchars($username));
     $firstName = trim(htmlspecialchars($firstName));
     $lastName = trim(htmlspecialchars($lastName));
@@ -840,7 +836,7 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
         while ($row = $result->fetch_assoc()) {
             $userID = $row['ID'];
             $result1 = $mysqli->query("SELECT * from m151.category;");
-            $result2 = $mysqli->query("SELECT * from m151.users_has_category where users_ID = '$userID';");
+            $result2 = $mysqli->query("SELECT * from m151.category_has_users where users_ID = '$userID';");
             for ($i=0;$row1 = $result1->fetch_assoc();$i++) {
                 $ID1[$i] = $row1['tag_ID'];
             }
@@ -855,16 +851,16 @@ function createUser($username, $firstName, $lastName, $password, $status, $categ
                     if (isset($categories[$ID1[$y]]) && $ID1[$y] == $ID2[$j]) {
                         $j++;
                     } elseif(!isset($categories[$ID1[$y]]) && $ID1[$y] == $ID2[$j]) {
-                        $stmt = $mysqli->prepare("DELETE FROM m151.users_has_category WHERE users_ID = '$userID' and category_tag_ID = '$ID2[$j]'");
+                        $stmt = $mysqli->prepare("DELETE FROM m151.category_has_users WHERE users_ID = '$userID' and category_tag_ID = '$ID2[$j]'");
                         $stmt->execute();
                         $j++;
                     }elseif(isset($categories[$ID1[$y]])){
-                        $stmt = $mysqli->prepare("INSERT INTO m151.users_has_category (users_ID, category_tag_ID) values (?,?);");
+                        $stmt = $mysqli->prepare("INSERT INTO m151.category_has_users (users_ID, category_tag_ID) values (?,?);");
                         $stmt->bind_param("ii", $userID, $ID1[$y]);
                         $stmt->execute();
                     }
                 }elseif(isset($categories[$ID1[$y]])){
-                    $stmt = $mysqli->prepare("INSERT INTO m151.users_has_category (users_ID, category_tag_ID) values (?,?);");
+                    $stmt = $mysqli->prepare("INSERT INTO m151.category_has_users (users_ID, category_tag_ID) values (?,?);");
                     $stmt->bind_param("ii", $userID, $ID1[$y]);
                     $stmt->execute();
                 }
@@ -883,7 +879,7 @@ if(isset($_GET['editUser'])){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function editUser($userID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $result = $mysqli->query("SELECT * from m151.users where ID = '$userID';");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -895,7 +891,7 @@ function editUser($userID){
             } else {
                 $status = "";
             }
-            $result2 = $mysqli->query("select c.tag_ID from m151.users as u join m151.users_has_category as uk on u.ID = uk.users_ID join m151.category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
+            $result2 = $mysqli->query("select c.tag_ID from m151.users as u join m151.category_has_users as uk on u.ID = uk.users_ID join m151.category as c on c.tag_ID = uk.category_tag_ID where u.username = '$username';");
 
             $categories = [];
 
@@ -914,7 +910,7 @@ if(isset($_GET['deleteUser'])){
     deleteUser($_GET['deleteUser']);
 }
 function deleteUser($userID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $stmt = $mysqli->prepare("delete from m151.users where ID = '$userID';");
     $stmt->execute();
     $stmt->close();
@@ -964,7 +960,7 @@ function categoriesPage($search = ""){
     </tr>
   </thead>
   <tbody>';
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $order = "order by ".$_SESSION['sortRow']." ".$_SESSION['sortDir'];
     $result = $mysqli->query("SELECT * from m151.category ".$search.$order.";");
     if ($result->num_rows > 0) {
@@ -977,7 +973,7 @@ function categoriesPage($search = ""){
                           <td style='word-wrap: break-word;'>$name</td>
                           <td>
                           ";
-            $result2 = $mysqli->query("select u.username from m151.users as u join m151.users_has_category as uk on u.ID = uk.users_ID where uk.category_tag_ID = '$id';");
+            $result2 = $mysqli->query("select u.username from m151.users as u join m151.category_has_users as uk on u.ID = uk.users_ID where uk.category_tag_ID = '$id';");
 
             if ($result2->num_rows> 0) {
                 while ($row2 = $result2->fetch_assoc()) {
@@ -1032,7 +1028,7 @@ if(isset($_POST['categoryName'])){
     }
     $name = trim(htmlspecialchars($_POST['categoryName']));
     if(empty($_SESSION['editCategory'])){
-        $mysqli = dbConnector(1);
+        $mysqli = dbConnector();
         $stmt = $mysqli->query("SELECT * FROM m151.category WHERE name = '$name'");
         if ($stmt->num_rows > 0) {
             $categoryError['error'] .= "Category already exists.</br>";
@@ -1049,7 +1045,7 @@ if(isset($_POST['categoryName'])){
 }
 function createCategory($name){
     $name = trim(htmlspecialchars($name));
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     if(!empty($_SESSION['editCategory'])){
         $catID = $_SESSION['editCategory'];
         $stmt = $mysqli->prepare("UPDATE m151.category SET name = ? WHERE tag_ID = '$catID'");
@@ -1071,7 +1067,7 @@ if(isset($_GET['editCategory'])){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 function editCategory($catID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $result = $mysqli->query("SELECT name FROM m151.category WHERE tag_ID = '$catID'");
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
@@ -1085,7 +1081,7 @@ if(isset($_GET['deleteCategory'])){
     deleteCategory($_GET['deleteCategory']);
 }
 function deleteCategory($tagID){
-    $mysqli = dbConnector(1);
+    $mysqli = dbConnector();
     $stmt = $mysqli->query("DELETE FROM m151.category WHERE tag_ID = '$tagID'");
     $mysqli->close();
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
