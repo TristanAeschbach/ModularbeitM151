@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'backend.php';
+set_error_handler("errorHandler");
 if(!isset($_SESSION['page'])){
     $_SESSION['page'] = "login";
 }
@@ -246,6 +247,9 @@ if(isset($_SESSION['sortRow'])){
                 }else{
                     echo editCategory($_SESSION['editCategory']);
                 }
+                break;
+            case "error":
+                echo $_SESSION['error'];
         }
     }
     ?>

@@ -1,4 +1,11 @@
 <?php
+set_error_handler("errorHandler");
+function errorHandler($errno, $errstr){
+    $_SESSION['page'] = "error";
+    $_SESSION['error'] = "<h1>Sorry, there's been an Error.</h1><h1><br>Error: [$errno] $errstr</h1><h1><br>Please Try again later or contact the Administrator.</h1>";
+    echo "<meta http-equiv='refresh' content='0;url=index.php'>";
+}
+
 if(!isset($_SESSION)){
     session_start();
 }
@@ -418,7 +425,7 @@ if(isset($_POST['title'])){
 
     if (strlen(trim($_POST['content'])) > 2000) {
         // Spezielle Zeichen Escapen > Script Injection verhindern
-        $todoError['error'] .= "Content: Please limit you content to 2000 characters<br />";
+        $todoError['error'] .= "Content: Please limit your content to 2000 characters<br />";
     }
     $todoError['content'] = htmlspecialchars(trim($_POST['content']));
 
@@ -435,7 +442,7 @@ if(isset($_POST['title'])){
     }
     $todoError['dueDate'] = htmlspecialchars(trim($_POST['dueDate']));
 
-    if (!isset($_POST['progress']) || empty(trim($_POST['progress'])) || strlen(trim($_POST['progress'])) > 3 || trim($_POST['progress']) > 100 || !preg_match("/[0-9]/", $_POST['progress'])) {
+    if (!isset($_POST['progress']) || empty(trim($_POST['progress'])) || strlen(trim($_POST['progress'])) > 3 || trim($_POST['progress']) > 100 || !preg_match("/[0-9]/", trim($_POST['progress']))) {
         $todoError['error'] .= "Progress: Please enter a number between 1 and 100. <br />";
     }
     $todoError['progress'] = htmlspecialchars(trim($_POST['progress']));
@@ -694,7 +701,8 @@ function userForm($username = "", $firstName = "", $lastName = "", $categories =
             <input type='text' name='username' class='form-control' id='username'
             value='$username'
                    placeholder='Username'
-                   maxlength='30' required>
+                   maxlength='30' 
+                   required>
         </div>
         <!-- vorname -->
         <div class='form-group'>
