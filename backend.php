@@ -1,15 +1,17 @@
 <?php
+//spezieller Error handler wird gesetzt
 set_error_handler("errorHandler");
+//spezieller Error handler wird definiert
 function errorHandler($errno, $errstr){
     $_SESSION['page'] = "error";
     $_SESSION['error'] = "<h1>Sorry, there's been an Error.</h1><h1><br>Error: [$errno] $errstr</h1><h1><br>Please Try again later or contact the Administrator.</h1>";
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-
+//falls noch keine Session gestartet ist, wier d^hier eine gestartet
 if(!isset($_SESSION)){
     session_start();
 }
-
+//hier wierd die Datenbank verbunden
 function dbConnector(){
     $host     = 'localhost';       // host
     $username = "root";
@@ -25,7 +27,7 @@ function dbConnector(){
     }
     return $mysqli;
 }
-
+//Wenn man auf das "logo" TODO drückt, dann wird hier die passende seite ausgewählt.
 if(isset($_GET['page']) && $_GET['page'] == "default"){
     if (isset($_SESSION['admin']) && $_SESSION['admin'] == 0){
         $_SESSION['search'] = "";
@@ -44,7 +46,7 @@ if(isset($_GET['page']) && $_GET['page'] == "default"){
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
 
-//LOGIN / LOGOUT
+//die funktion gibt ein login form aus
 function login($error = "", $username = ""){
     $output = "<div class='container'>
     <div class='row vertical-offset-100'>
@@ -75,6 +77,7 @@ function login($error = "", $username = ""){
 </div>";
     return $output;
 }
+//hier wird das login form ausgewertet
 if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
     $mysqli = dbConnector();
 
@@ -110,7 +113,7 @@ if(isset($_POST['usernameLogin']) && isset($_POST['passwordLogin'])){
     }
     echo "<meta http-equiv='refresh' content='0;url=index.php'>";
 }
-
+// sehr einfache Logout Funktion
 if(isset($_GET['logout'])){
     logout();
 }
@@ -120,7 +123,7 @@ function logout(){
 }
 
 
-//Sorting stuff
+//Dies sind sehr mühsame if abfragen, die fürs sortieren gebraucht sind
 if(isset($_GET['sortRow']) && isset($_SESSION['page'])){
     if(isset($_GET['sortDir']) && $_GET['sortDir'] == "desc"){
         $_SESSION['sortDir'] = $_GET['sortDir'];
