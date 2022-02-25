@@ -12,7 +12,7 @@ if(!isset($_SESSION)){
 
 function dbConnector(){
     $host     = 'localhost';       // host
-    $username = 'm151';
+    $username = "userM151";
     $password = '123456';        // Passwort
     $database = 'm151';   // database
 
