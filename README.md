@@ -1,6 +1,6 @@
-###Tristan Aeschbach, I2b
+### Tristan Aeschbach, I2b
 # ModularbeitM151
-##ToDo Website
+## ToDo Website
 
 ## About
 A ToDo Website created for the M151 Modularbeit. 
