@@ -12,8 +12,8 @@ if(!isset($_SESSION)){
 
 function dbConnector(){
     $host     = 'localhost';       // host
-    $username = "userM151";
-    $password = '123456';        // Passwort
+    $username = "root";
+    $password = '';        // Passwort
     $database = 'm151';   // database
 
 // Verbindung herstellen
